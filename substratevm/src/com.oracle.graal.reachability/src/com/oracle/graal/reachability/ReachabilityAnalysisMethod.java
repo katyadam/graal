@@ -132,7 +132,7 @@ public final class ReachabilityAnalysisMethod extends AnalysisMethod {
      * Utility method which contains all the steps that have to be taken when parsing methods for
      * the analysis.
      */
-    public static StructuredGraph getDecodedGraph(ReachabilityAnalysisEngine bb, ReachabilityAnalysisMethod method) {
+    public static StructuredGraph getDecodedGraph(BigBang bb, AnalysisMethod method) {
         AnalysisParsedGraph analysisParsedGraph = method.ensureGraphParsed(bb);
         if (analysisParsedGraph.isIntrinsic()) {
             method.registerAsIntrinsicMethod("reachability analysis engine");
