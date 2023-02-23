@@ -12,6 +12,8 @@ import com.oracle.svm.hosted.prophet.model.Entity;
 import com.oracle.svm.hosted.prophet.model.Field;
 import com.oracle.svm.hosted.prophet.model.Module;
 import com.oracle.svm.hosted.prophet.model.Name;
+import com.oracle.svm.hosted.prophet.RestCallExtraction;
+
 import org.graalvm.compiler.graph.Node;
 import org.graalvm.compiler.graph.NodeInputList;
 import org.graalvm.compiler.nodes.CallTargetNode;
@@ -46,6 +48,7 @@ public class ProphetPlugin {
     private final String basePackage;
     private final List<Class<?>> allClasses;
     private static final Logger logger = Logger.loggerFor(ProphetPlugin.class);
+    private final Set<String> relationAnnotationNames = new HashSet<>(Arrays.asList("ManyToOne", "OneToMany", "OneToOne", "ManyToMany"));
 
     private final List<String> unwantedBasePackages = Arrays.asList("org.graalvm", "com.oracle", "jdk.vm");
 
@@ -82,7 +85,6 @@ public class ProphetPlugin {
         @Option(help = "Where to store the analysis output?")//
         public static final HostedOptionKey<String> ProphetOutputFile = new HostedOptionKey<>(null);
     }
-
 
     public static void run(ImageClassLoader loader, AnalysisUniverse aUniverse, AnalysisMetaAccess metaAccess, Inflation bb) {
         String basePackage = Options.ProphetBasePackage.getValue();
@@ -123,6 +125,7 @@ public class ProphetPlugin {
         logger.info("Amount of classes = " + classes.size());
         for (Class<?> clazz : classes) {
             if (extractRestCalls)
+                RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb);
                 EndpointExtraction.extractEndpoints(clazz, metaAccess, bb);
 
             Annotation[] annotations = clazz.getAnnotations();
@@ -159,16 +162,15 @@ public class ProphetPlugin {
     private List<Class<?>> filterRelevantClasses() {
         var res = new ArrayList<Class<?>>();
         for (Class<?> applicationClass : allClasses) {
-            // if (applicationClass.getName().startsWith("baylor.csi.questionManagement")){
-            //     System.out.println("app class name = " + applicationClass.getName());
-            // }
+            if (applicationClass.getName().startsWith("edu.baylor.ecs.cms")){
+                System.out.println("app class name = " + applicationClass.getName());
+            }
             if (applicationClass.getName().startsWith(basePackage) && !applicationClass.isInterface())
                 res.add(applicationClass);
         }
         return res;
     }
 
-    private final Set<String> relationAnnotationNames = new HashSet<>(Arrays.asList("ManyToOne", "OneToMany", "OneToOne", "ManyToMany"));
 
     private Entity processEntity(Class<?> clazz, Annotation ann) {
         var fields = new HashSet<Field>();
