@@ -26,6 +26,9 @@ import com.oracle.svm.hosted.prophet.model.Entity;
 import com.oracle.svm.hosted.prophet.model.Field;
 import com.oracle.svm.hosted.prophet.model.Module;
 import com.oracle.svm.hosted.prophet.model.Name;
+import java.util.*;
+
+import com.oracle.svm.hosted.prophet.Logger;
 
 // todo move to a separate module for a faster compilation ?
 public class ProphetPlugin {
@@ -138,7 +141,11 @@ public class ProphetPlugin {
                     entities.add(entity);
                 }
             }
-            EntityExtraction.extractClassEntityCalls(clazz, metaAccess, bb);
+
+            // add if class is entity
+            Optional<Entity> ent = EntityExtraction.extractClassEntityCalls(clazz, metaAccess, bb);
+            ent.ifPresent(entities::add);
+
         }
         return new Module(new Name(modulename), entities);
     }
