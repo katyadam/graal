@@ -138,14 +138,7 @@ public class ProphetPlugin {
                     entities.add(entity);
                 }
             }
-//            Annotation[] annotations = clazz.getAnnotations();
-//            for (Annotation ann : annotations) {
             EntityExtraction.extractClassEntityCalls(clazz, metaAccess, bb);
-//                if (ann.annotationType().getName().startsWith("javax.persistence.Entity")) {
-//                    Entity entity = processEntity(clazz, ann);
-//                    entities.add(entity);
-//                }
-//            }
         }
         return new Module(new Name(modulename), entities);
     }
