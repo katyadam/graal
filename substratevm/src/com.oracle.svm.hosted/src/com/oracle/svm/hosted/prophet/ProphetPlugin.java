@@ -1,10 +1,24 @@
 package com.oracle.svm.hosted.prophet;
-import com.oracle.svm.hosted.prophet.EndpointExtraction;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.graalvm.compiler.options.Option;
+
 import com.oracle.graal.pointsto.meta.AnalysisMetaAccess;
-import com.oracle.graal.pointsto.meta.AnalysisMethod;
-import com.oracle.graal.pointsto.meta.AnalysisType;
 import com.oracle.graal.pointsto.meta.AnalysisUniverse;
-import com.oracle.graal.reachability.ReachabilityAnalysisMethod;
 import com.oracle.svm.core.option.HostedOptionKey;
 import com.oracle.svm.hosted.ImageClassLoader;
 import com.oracle.svm.hosted.analysis.Inflation;
@@ -12,29 +26,6 @@ import com.oracle.svm.hosted.prophet.model.Entity;
 import com.oracle.svm.hosted.prophet.model.Field;
 import com.oracle.svm.hosted.prophet.model.Module;
 import com.oracle.svm.hosted.prophet.model.Name;
-import com.oracle.svm.hosted.prophet.RestCallExtraction;
-
-import org.graalvm.compiler.graph.Node;
-import org.graalvm.compiler.graph.NodeInputList;
-import org.graalvm.compiler.nodes.CallTargetNode;
-import org.graalvm.compiler.nodes.Invoke;
-import org.graalvm.compiler.nodes.InvokeWithExceptionNode;
-import org.graalvm.compiler.nodes.StructuredGraph;
-import org.graalvm.compiler.nodes.ValueNode;
-import org.graalvm.compiler.options.Option;
-import jdk.vm.ci.meta.ResolvedJavaMethod.Parameter;
-
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import com.oracle.svm.hosted.prophet.Logger;
 
 // todo move to a separate module for a faster compilation ?
 public class ProphetPlugin {
@@ -49,6 +40,7 @@ public class ProphetPlugin {
     private final List<Class<?>> allClasses;
     private static final Logger logger = Logger.loggerFor(ProphetPlugin.class);
     private final Set<String> relationAnnotationNames = new HashSet<>(Arrays.asList("ManyToOne", "OneToMany", "OneToOne", "ManyToMany"));
+    private Map<String, Object> propMap;
 
     private final List<String> unwantedBasePackages = Arrays.asList("org.graalvm", "com.oracle", "jdk.vm");
 
@@ -116,6 +108,12 @@ public class ProphetPlugin {
     }
 
     private Module doRun() {
+        URL enumeration = loader.getClassLoader().getResource("application.yml");
+        try {
+            this.propMap = new org.yaml.snakeyaml.Yaml().load(new FileReader(enumeration.getFile()));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         var classes = filterRelevantClasses();
         return processClasses(classes);
     }
@@ -126,8 +124,7 @@ public class ProphetPlugin {
         for (Class<?> clazz : classes) {
             if (extractRestCalls)
                 RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb);
-                EndpointExtraction.extractEndpoints(clazz, metaAccess, bb);
-
+            EndpointExtraction.extractEndpoints(clazz, metaAccess, bb, this.propMap);
             Annotation[] annotations = clazz.getAnnotations();
             for (Annotation ann : annotations) {
                 if (ann.annotationType().getName().startsWith("javax.persistence.Entity")) {
@@ -140,9 +137,9 @@ public class ProphetPlugin {
     }
 
     // private void dumpAllClasses() {
-    //     logger.debug("---All app classes---");
-    //     allClasses.forEach(System.out::println);
-    //     logger.debug("---------------------");
+    // logger.debug("---All app classes---");
+    // allClasses.forEach(System.out::println);
+    // logger.debug("---------------------");
     // }
 
     private Set<Entity> filterEntityClasses(List<Class<?>> classes) {
@@ -162,7 +159,7 @@ public class ProphetPlugin {
     private List<Class<?>> filterRelevantClasses() {
         var res = new ArrayList<Class<?>>();
         for (Class<?> applicationClass : allClasses) {
-            if (applicationClass.getName().startsWith("edu.baylor.ecs.cms")){
+            if (applicationClass.getName().startsWith("edu.baylor.ecs.cms")) {
                 System.out.println("app class name = " + applicationClass.getName());
             }
             if (applicationClass.getName().startsWith(basePackage) && !applicationClass.isInterface())
