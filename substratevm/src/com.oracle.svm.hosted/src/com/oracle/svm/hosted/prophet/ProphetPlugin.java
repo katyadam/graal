@@ -27,6 +27,7 @@ import com.oracle.svm.hosted.prophet.model.Field;
 import com.oracle.svm.hosted.prophet.model.Module;
 import com.oracle.svm.hosted.prophet.model.Name;
 import java.util.*;
+import java.util.Optional;
 
 import com.oracle.svm.hosted.prophet.Logger;
 
@@ -44,7 +45,7 @@ public class ProphetPlugin {
     private final List<Class<?>> allClasses;
     private static final Logger logger = Logger.loggerFor(ProphetPlugin.class);
     private final Set<String> relationAnnotationNames = new HashSet<>(Arrays.asList("ManyToOne", "OneToMany", "OneToOne", "ManyToMany"));
-    private Map<String, Object> propMap;
+    private Map<String, Object> propMap = null;
 
     private final List<String> unwantedBasePackages = Arrays.asList("org.graalvm", "com.oracle", "jdk.vm");
 
@@ -118,11 +119,14 @@ public class ProphetPlugin {
 
     private Module doRun() {
         URL enumeration = loader.getClassLoader().getResource("application.yml");
-        try {
-            this.propMap = new org.yaml.snakeyaml.Yaml().load(new FileReader(enumeration.getFile()));
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+        if (enumeration != null){
+            try {
+                this.propMap = new org.yaml.snakeyaml.Yaml().load(new FileReader(enumeration.getFile()));
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         }
+
         var classes = filterRelevantClasses();
         return processClasses(classes);
     }
@@ -145,7 +149,10 @@ public class ProphetPlugin {
             // add if class is entity
             Optional<Entity> ent = EntityExtraction.extractClassEntityCalls(clazz, metaAccess, bb);
             ent.ifPresent(entities::add);
-
+            if (extractRestCalls){
+                // EndpointExtraction.extractEndpoints(clazz, metaAccess, bb);
+                RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap);
+            }
         }
         return new Module(new Name(modulename), entities);
     }
@@ -170,6 +177,20 @@ public class ProphetPlugin {
         return entities;
     }
 
+    // private Set<Entity> filterEntityClasses(List<Class<?>> classes) {
+    //     var entities = new HashSet<Entity>();
+    //     for (Class<?> clazz : classes) {
+    //         Annotation[] annotations = clazz.getAnnotations();
+    //         for (Annotation ann : annotations) {
+    //             if (ann.annotationType().getName().startsWith("javax.persistence.Entity")) {
+    //                 Entity entity = processEntity(clazz, ann);
+    //                 entities.add(entity);
+    //             }
+    //         }
+    //     }
+    //     return entities;
+    // }
+
     private List<Class<?>> filterRelevantClasses() {
         var res = new ArrayList<Class<?>>();
         for (Class<?> applicationClass : allClasses) {
@@ -182,40 +203,39 @@ public class ProphetPlugin {
         return res;
     }
 
+    // private Entity processEntity(Class<?> clazz, Annotation ann) {
+    //     var fields = new HashSet<Field>();
+    //     for (java.lang.reflect.Field declaredField : clazz.getDeclaredFields()) {
+    //         Field field = new Field();
+    //         field.setName(new Name(declaredField.getName()));
+    //         if (isCollection(declaredField.getType())) {
+    //             Type nested = ((ParameterizedType) declaredField.getGenericType()).getActualTypeArguments()[0];
+    //             field.setType(((Class<?>) nested).getSimpleName());
+    //             field.setCollection(true);
+    //         } else {
+    //             field.setType(declaredField.getType().getSimpleName());
+    //             field.setCollection(false);
+    //         }
 
-    private Entity processEntity(Class<?> clazz, Annotation ann) {
-        var fields = new HashSet<Field>();
-        for (java.lang.reflect.Field declaredField : clazz.getDeclaredFields()) {
-            Field field = new Field();
-            field.setName(new Name(declaredField.getName()));
-            if (isCollection(declaredField.getType())) {
-                Type nested = ((ParameterizedType) declaredField.getGenericType()).getActualTypeArguments()[0];
-                field.setType(((Class<?>) nested).getSimpleName());
-                field.setCollection(true);
-            } else {
-                field.setType(declaredField.getType().getSimpleName());
-                field.setCollection(false);
-            }
+    //         var annotations = new HashSet<com.oracle.svm.hosted.prophet.model.Annotation>();
+    //         for (Annotation declaredAnnotation : declaredField.getAnnotations()) {
+    //             var annotation = new com.oracle.svm.hosted.prophet.model.Annotation();
+    //             annotation.setStringValue(declaredAnnotation.annotationType().getSimpleName());
+    //             annotation.setName("@" + declaredAnnotation.annotationType().getSimpleName());
+    //             annotations.add(annotation);
 
-            var annotations = new HashSet<com.oracle.svm.hosted.prophet.model.Annotation>();
-            for (Annotation declaredAnnotation : declaredField.getAnnotations()) {
-                var annotation = new com.oracle.svm.hosted.prophet.model.Annotation();
-                annotation.setStringValue(declaredAnnotation.annotationType().getSimpleName());
-                annotation.setName("@" + declaredAnnotation.annotationType().getSimpleName());
-                annotations.add(annotation);
-
-                if (relationAnnotationNames.stream().anyMatch(it -> annotation.getName().contains(it))) {
-                    field.setReference(true);
-                    field.setEntityRefName(field.getType());
-                }
-            }
-            field.setAnnotations(annotations);
-            fields.add(field);
-        }
-        Entity entity = new Entity(new Name(clazz.getSimpleName()));
-        entity.setFields(fields);
-        return entity;
-    }
+    //             if (relationAnnotationNames.stream().anyMatch(it -> annotation.getName().contains(it))) {
+    //                 field.setReference(true);
+    //                 field.setEntityRefName(field.getType());
+    //             }
+    //         }
+    //         field.setAnnotations(annotations);
+    //         fields.add(field);
+    //     }
+    //     Entity entity = new Entity(new Name(clazz.getSimpleName()));
+    //     entity.setFields(fields);
+    //     return entity;
+    // }
 
     private List<Class<?>> filterClasses() {
         var res = new ArrayList<Class<?>>();
@@ -226,12 +246,12 @@ public class ProphetPlugin {
         return res;
     }
 
-    public static boolean isCollection(Class<?> type) {
-        if (type.getName().contains("Set")) {
-            return true;
-        } else if (type.getName().contains("Collection")) {
-            return true;
-        } else
-            return type.getName().contains("List");
-    }
+    // public static boolean isCollection(Class<?> type) {
+    //     if (type.getName().contains("Set")) {
+    //         return true;
+    //     } else if (type.getName().contains("Collection")) {
+    //         return true;
+    //     } else
+    //         return type.getName().contains("List");
+    // }
 }
