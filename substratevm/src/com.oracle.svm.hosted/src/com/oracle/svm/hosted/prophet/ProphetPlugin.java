@@ -141,6 +141,10 @@ public class ProphetPlugin {
             // add if class is entity
             Optional<Entity> ent = EntityExtraction.extractClassEntityCalls(clazz, metaAccess, bb);
             ent.ifPresent(entities::add);
+            if (extractRestCalls){
+                EndpointExtraction.extractEndpoints(clazz, metaAccess, bb);
+                //RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap);
+            }
             RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap);
             //ENDPOINT EXTRACTION HERE
 
