@@ -125,6 +125,9 @@ public class ProphetPlugin {
 
     private Module processClasses(List<Class<?>> classes) {
         var entities = new HashSet<Entity>();
+        List<RestCall> restCallList = new ArrayList<>();
+        List<Endpoint> endpointList = new ArrayList<>();
+
         logger.info("Amount of classes = " + classes.size());
         for (Class<?> clazz : classes) {
             if (extractRestCalls) {
@@ -141,15 +144,19 @@ public class ProphetPlugin {
             // add if class is entity
             Optional<Entity> ent = EntityExtraction.extractClassEntityCalls(clazz, metaAccess, bb);
             ent.ifPresent(entities::add);
+            List<RestCall> restCalls = RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap);
+            restCallList.addAll(restCalls);
             if (extractRestCalls){
                 EndpointExtraction.extractEndpoints(clazz, metaAccess, bb);
                 //RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap);
             }
             RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap);
             //ENDPOINT EXTRACTION HERE
+            List<Endpoint> endpoints = EndpointExtraction.extractEndpoints(clazz, metaAccess, bb);
+            endpointList.addAll(endpoints);
 
         }
-        return new Module(new Name(modulename), entities, null, null);
+        return new Module(new Name(modulename), entities, restCallList, endpointList);
     }
 
     // private void dumpAllClasses() {
