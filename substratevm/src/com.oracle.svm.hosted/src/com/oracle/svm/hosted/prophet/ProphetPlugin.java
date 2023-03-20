@@ -31,7 +31,6 @@ import java.util.Optional;
 
 import com.oracle.svm.hosted.prophet.Logger;
 
-// todo move to a separate module for a faster compilation ?
 public class ProphetPlugin {
 
     private final ImageClassLoader loader;
@@ -39,8 +38,6 @@ public class ProphetPlugin {
     private final AnalysisMetaAccess metaAccess;
     private final Inflation bb;
     private final String modulename;
-    private final Boolean extractRestCalls;
-//    private final Boolean extractEntities;
     private final String basePackage;
     private final List<Class<?>> allClasses;
     private static final Logger logger = Logger.loggerFor(ProphetPlugin.class);
@@ -49,14 +46,12 @@ public class ProphetPlugin {
 
     private final List<String> unwantedBasePackages = Arrays.asList("org.graalvm", "com.oracle", "jdk.vm");
 
-    public ProphetPlugin(ImageClassLoader loader, AnalysisUniverse aUniverse, AnalysisMetaAccess metaAccess, Inflation bb, String basePackage, String modulename, Boolean extractRestCalls /* , Boolean extractEntities */) {
+    public ProphetPlugin(ImageClassLoader loader, AnalysisUniverse aUniverse, AnalysisMetaAccess metaAccess, Inflation bb, String basePackage, String modulename) {
         this.loader = loader;
         universe = aUniverse;
         this.metaAccess = metaAccess;
         this.bb = bb;
         this.modulename = modulename;
-        this.extractRestCalls = extractRestCalls;
-//        this.extractEntities = extractEntities;
         this.allClasses = new ArrayList<>();
         for (Class<?> clazz : loader.getApplicationClasses()) {
             boolean comesFromWantedPackage = unwantedBasePackages.stream().noneMatch(it -> clazz.getName().startsWith(it));
@@ -78,10 +73,10 @@ public class ProphetPlugin {
 //        public static final HostedOptionKey<Boolean> ProphetEntities = new HostedOptionKey<>(false);
 
         @Option(help = "Base package to analyse.")//
-        public static final HostedOptionKey<String> ProphetBasePackage = new HostedOptionKey<>("edu.baylor.ecs.cms");
+        public static final HostedOptionKey<String> ProphetBasePackage = new HostedOptionKey<>("unknown");
 
         @Option(help = "Module name.")//
-        public static final HostedOptionKey<String> ProphetModuleName = new HostedOptionKey<>("cms");
+        public static final HostedOptionKey<String> ProphetModuleName = new HostedOptionKey<>("unknown");
 
         @Option(help = "Where to store the analysis output?")//
         public static final HostedOptionKey<String> ProphetOutputFile = new HostedOptionKey<>(null);
@@ -90,14 +85,14 @@ public class ProphetPlugin {
     public static void run(ImageClassLoader loader, AnalysisUniverse aUniverse, AnalysisMetaAccess metaAccess, Inflation bb) {
         String basePackage = Options.ProphetBasePackage.getValue();
         String modulename = Options.ProphetModuleName.getValue();
-        Boolean extractRestCalls = Options.ProphetRest.getValue();
-//        Boolean extractEntities = Options.ProphetEntities.getValue();
-        logger.info("Running Prophet plugin :)");
+
+        logger.info("Running Prophet plugin");
         logger.info("Analyzing all classes in the " + basePackage + " package.");
         logger.info("Creating module " + modulename);
 
-        var plugin = new ProphetPlugin(loader, aUniverse, metaAccess, bb, basePackage, modulename, extractRestCalls/* , extractEntities */);
+        var plugin = new ProphetPlugin(loader, aUniverse, metaAccess, bb, basePackage, modulename);
         Module module = plugin.doRun();
+
         dumpModule(module);
     }
 
@@ -149,12 +144,11 @@ public class ProphetPlugin {
             // add if class is entity
             Optional<Entity> ent = EntityExtraction.extractClassEntityCalls(clazz, metaAccess, bb);
             ent.ifPresent(entities::add);
-            if (extractRestCalls){
-                // EndpointExtraction.extractEndpoints(clazz, metaAccess, bb);
-                RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap);
-            }
+            RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap);
+            //ENDPOINT EXTRACTION HERE
+
         }
-        return new Module(new Name(modulename), entities);
+        return new Module(new Name(modulename), entities, null, null);
     }
 
     // private void dumpAllClasses() {
@@ -203,40 +197,6 @@ public class ProphetPlugin {
         return res;
     }
 
-    // private Entity processEntity(Class<?> clazz, Annotation ann) {
-    //     var fields = new HashSet<Field>();
-    //     for (java.lang.reflect.Field declaredField : clazz.getDeclaredFields()) {
-    //         Field field = new Field();
-    //         field.setName(new Name(declaredField.getName()));
-    //         if (isCollection(declaredField.getType())) {
-    //             Type nested = ((ParameterizedType) declaredField.getGenericType()).getActualTypeArguments()[0];
-    //             field.setType(((Class<?>) nested).getSimpleName());
-    //             field.setCollection(true);
-    //         } else {
-    //             field.setType(declaredField.getType().getSimpleName());
-    //             field.setCollection(false);
-    //         }
-
-    //         var annotations = new HashSet<com.oracle.svm.hosted.prophet.model.Annotation>();
-    //         for (Annotation declaredAnnotation : declaredField.getAnnotations()) {
-    //             var annotation = new com.oracle.svm.hosted.prophet.model.Annotation();
-    //             annotation.setStringValue(declaredAnnotation.annotationType().getSimpleName());
-    //             annotation.setName("@" + declaredAnnotation.annotationType().getSimpleName());
-    //             annotations.add(annotation);
-
-    //             if (relationAnnotationNames.stream().anyMatch(it -> annotation.getName().contains(it))) {
-    //                 field.setReference(true);
-    //                 field.setEntityRefName(field.getType());
-    //             }
-    //         }
-    //         field.setAnnotations(annotations);
-    //         fields.add(field);
-    //     }
-    //     Entity entity = new Entity(new Name(clazz.getSimpleName()));
-    //     entity.setFields(fields);
-    //     return entity;
-    // }
-
     private List<Class<?>> filterClasses() {
         var res = new ArrayList<Class<?>>();
         for (Class<?> applicationClass : allClasses) {
@@ -245,13 +205,4 @@ public class ProphetPlugin {
         }
         return res;
     }
-
-    // public static boolean isCollection(Class<?> type) {
-    //     if (type.getName().contains("Set")) {
-    //         return true;
-    //     } else if (type.getName().contains("Collection")) {
-    //         return true;
-    //     } else
-    //         return type.getName().contains("List");
-    // }
 }
