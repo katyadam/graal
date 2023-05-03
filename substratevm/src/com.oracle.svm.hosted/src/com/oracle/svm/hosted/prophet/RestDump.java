@@ -13,7 +13,7 @@ import java.io.FileWriter;
 public class RestDump {
     
     //RESTCALL CSV ORDER SHOULD BE
-    //msName, restCallInClassName, parentMethod, uri, httpMethod, returnType, isCollection
+    //msName, restCallInClassName, parentMethod, uri, httpMethod, returnType, isPath, isBody, paramType, paramCount, isCollection
     //ENDPOINT CSV ORDER SHOULD BE 
     //msName, endpointInClassName, parentMethod, arguments, path, httpMethod, returnType, isCollection
 
