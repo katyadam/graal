@@ -77,9 +77,9 @@ public class RestCallExtraction {
                             AnalysisMethod targetMethod = ((AnalysisMethod) invoke.getTargetMethod());
                             //&& method.getQualifiedName().contains("updateUser")
                             if (targetMethod.getQualifiedName().startsWith(REST_TEMPLATE_PACKAGE)) {
-                                System.out.println("===========================================");
-                                System.out.println("Method qualified name: " + method.getQualifiedName());
-                                System.out.println("Target method qualified name: " + targetMethod.getQualifiedName());
+                                // System.out.println("===========================================");
+                                // System.out.println("Method qualified name: " + method.getQualifiedName());
+                                // System.out.println("Target method qualified name: " + targetMethod.getQualifiedName());
                                 Parameter[] parameters = targetMethod.getParameters();
 
                                 // System.out.println("targetMethod.getWrapped().getName() = " + targetMethod.getWrapped().getName() + ", just the getWrapped() = " + targetMethod.getWrapped());
@@ -144,14 +144,14 @@ public class RestCallExtraction {
                                     RETURN_TYPE = RestCallExtraction.HTTP_ENTITY_PACKAGE;
                                 }
                                 RESTParameter param = getParamDetails(callTargetNode, URI);
-                                System.out.println("Param = " + param);
+                                // System.out.println("Param = " + param);
                                 restCalls.add(new RestCall(HTTP_METHOD_TYPE, PARENT_METHOD, RETURN_TYPE, URI, callIsCollection, clazz.getCanonicalName(), msName, param));
                                 // System.out.println("PARENT METHOD = " + PARENT_METHOD);
                                 // System.out.println("RETURN TYPE = " + RETURN_TYPE);
                                 // System.out.println("HTTP_METHOD_TYPE = " + HTTP_METHOD_TYPE);
                                 // System.out.println("URI = " + URI);
                                 // System.out.println("IS COLLECTION = " + callIsCollection);
-                                System.out.println("===========================================");
+                                // System.out.println("===========================================");
                             }
                         }
                     }
@@ -190,15 +190,15 @@ public class RestCallExtraction {
     }
     //assumes there is only one HTTP_ENTITY object in each REST call method 
     private static RESTParameter setIfBodyAndType(RESTParameter param, CallTargetNode node){
-        System.out.println("Node = " + node);
-        System.out.println("Node TargetMethod = "  + node.targetMethod());
+        // System.out.println("Node = " + node);
+        // System.out.println("Node TargetMethod = "  + node.targetMethod());
         // boolean doBodyCountCheck = false;
         // if (node.targetMethod().toString().contains(RestCallExtraction.HTTP_ENTITY_PACKAGE)){
         //     param.setIsBody(true);
         //     doBodyCountCheck = true;
         // }
         for (ValueNode arg : node.arguments()){
-            System.out.println("arg = " + arg);
+            // System.out.println("arg = " + arg);
             // if (doBodyCountCheck && arg instanceof AllocatedObjectNode){
             //     //means allocated node is above it
             //     System.out.println("");
@@ -208,10 +208,10 @@ public class RestCallExtraction {
             // }
             // else 
             if (arg instanceof PiNode){
-                System.out.println("\t" + arg + " is a PiNode");
-                System.out.println("\tpi node inputs: " + ((PiNode)arg).inputs());
+                // System.out.println("\t" + arg + " is a PiNode");
+                // System.out.println("\tpi node inputs: " + ((PiNode)arg).inputs());
                 for (Node inputNode : ((PiNode)arg).inputs()){
-                    System.out.println("\t\tpiNode input = " + inputNode);
+                    // System.out.println("\t\tpiNode input = " + inputNode);
                     if (inputNode instanceof Invoke){
                         param = setIfBodyAndType(param, ((Invoke)inputNode).callTarget());
                         // param =  handleIfInvokeInRESTParam(param, ((ValueNode)inputNode));
@@ -219,35 +219,35 @@ public class RestCallExtraction {
                 }
             }
             else if (arg instanceof Invoke){
-                System.out.println("calling handle!");
+                // System.out.println("calling handle!");
                 param = handleIfInvokeInRESTParam(param, arg);
             }else{
-                System.out.println("\targ is class = " + arg.getClass());
+                // System.out.println("\targ is class = " + arg.getClass());
             }
         }
         return param; 
     }
     //nodes passed into here are only if they are instanceof Invoke
     private static RESTParameter handleIfInvokeInRESTParam(RESTParameter param, ValueNode node){
-        System.out.println("\targ is an invoke and = " + node);
+        // System.out.println("\targ is an invoke and = " + node);
         for (Node inNode : node.inputs()){
-            System.out.println("\t\tinvoke input = " + inNode);
+            // System.out.println("\t\tinvoke input = " + inNode);
             if (inNode instanceof Invoke){
                 param = handleIfInvokeInRESTParam(param, ((ValueNode)inNode));
             }
         }
-        System.out.println("\t\tpredecessor = " + node.predecessor() + ", class = " + node.predecessor().getClass());
+        // System.out.println("\t\tpredecessor = " + node.predecessor() + ", class = " + node.predecessor().getClass());
         Node predecessor = node.predecessor();
         if (predecessor instanceof BeginNode && predecessor.predecessor() instanceof Invoke){
-            System.out.println("\t\t\tpredecessor instance of Begin and predecessor.BeginNode is an invoke");
-            System.out.println("\t\t\tpredecessor of BeginNode = " + predecessor.predecessor());
+            // System.out.println("\t\t\tpredecessor instance of Begin and predecessor.BeginNode is an invoke");
+            // System.out.println("\t\t\tpredecessor of BeginNode = " + predecessor.predecessor());
             Node bNodePredecessor = predecessor.predecessor();    
             
             if (((Invoke)predecessor.predecessor()).callTarget().targetMethod().toString().contains(RestCallExtraction.HTTP_ENTITY_PACKAGE)){
-                System.out.println("callTarget = " + ((Invoke)predecessor.predecessor()).callTarget());
+                // System.out.println("callTarget = " + ((Invoke)predecessor.predecessor()).callTarget());
                 int inputAmnt = 0;
                 for ( Node ctIn : ((Invoke)predecessor.predecessor()).callTarget().inputs()){
-                    System.out.println("ctIn = " + ctIn);
+                    // System.out.println("ctIn = " + ctIn);
                     inputAmnt++;
                 }
 
@@ -260,14 +260,14 @@ public class RestCallExtraction {
                 CommitAllocationNode caNode = (CommitAllocationNode)bNodePredecessor.predecessor();
                 
                 
-                for (Node caNodeInput : caNode.inputs()){
-                    System.out.println("caNode input = " + caNodeInput);
-                    if (caNodeInput.toString().matches(".*VirtualInstance\\([0-9]*\\) HttpEntity")){
-                        System.out.println("match found!");
-                        System.out.println("between parentheses " + extractVirtualInstance(caNodeInput.toString()));
-                        //extract that number
-                    }
-                }
+                // for (Node caNodeInput : caNode.inputs()){
+                //     System.out.println("caNode input = " + caNodeInput);
+                //     if (caNodeInput.toString().matches(".*VirtualInstance\\([0-9]*\\) HttpEntity")){
+                //         System.out.println("match found!");
+                //         System.out.println("between parentheses " + extractVirtualInstance(caNodeInput.toString()));
+                //         //extract that number
+                //     }
+                // }
 
                 // int httpEntityValsCount = ((CommitAllocationNode)bNodePredecessor.predecessor()).getValues().size();
                 // param.setParamCount(param.getParamCount() +  httpEntityValsCount - 1);
@@ -280,9 +280,9 @@ public class RestCallExtraction {
                 // }
             // }
             // System.out.println("bNodePredecessor predecessor = " + ((CommitAllocationNode)bNodePredecessor.predecessor()).getValues());
-            for (ValueNode vn : ((CommitAllocationNode)bNodePredecessor.predecessor()).getValues()){
-                System.out.println("vn constant node = " + (ConstantNode)vn + ", value " + ((ConstantNode)vn).getValue());
-             }
+            // for (ValueNode vn : ((CommitAllocationNode)bNodePredecessor.predecessor()).getValues()){
+            //     System.out.println("vn constant node = " + (ConstantNode)vn + ", value " + ((ConstantNode)vn).getValue());
+            //  }
             // System.out.println("HttpEntity params");
             // param.setParamCount(param.getParamCount() + ((CommitAllocationNode)bNodePredecessor.predecessor()).getValues() - 1); //-1 because one of those is the headers
            
