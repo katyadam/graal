@@ -1,53 +1,38 @@
 package com.oracle.svm.hosted.prophet;
 
-import com.oracle.graal.pointsto.meta.AnalysisMetaAccess;
-import com.oracle.graal.pointsto.meta.AnalysisField;
-import com.oracle.graal.pointsto.meta.AnalysisMethod;
-import com.oracle.graal.pointsto.meta.AnalysisType;
-import com.oracle.graal.pointsto.meta.AnalysisUniverse;
-import com.oracle.graal.reachability.ReachabilityAnalysisMethod;
-import com.oracle.svm.core.meta.DirectSubstrateObjectConstant;
-import com.oracle.svm.hosted.analysis.Inflation;
-
-import jdk.vm.ci.meta.ResolvedJavaMethod.Parameter;
-import jdk.vm.ci.meta.PrimitiveConstant;
-
-import java.util.HashSet;
-import java.util.Arrays;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.graalvm.compiler.graph.Node;
 import org.graalvm.compiler.graph.NodeInputList;
 import org.graalvm.compiler.graph.iterators.NodeIterable;
+import org.graalvm.compiler.nodes.BeginNode;
 import org.graalvm.compiler.nodes.CallTargetNode;
+import org.graalvm.compiler.nodes.ConstantNode;
 import org.graalvm.compiler.nodes.Invoke;
-import org.graalvm.compiler.nodes.InvokeWithExceptionNode;
+import org.graalvm.compiler.nodes.PiNode;
 import org.graalvm.compiler.nodes.StructuredGraph;
 import org.graalvm.compiler.nodes.ValueNode;
-import org.graalvm.compiler.options.Option;
 import org.graalvm.compiler.nodes.java.LoadFieldNode;
-import org.graalvm.compiler.nodes.virtual.AllocatedObjectNode;
-import org.graalvm.compiler.nodes.InvokeWithExceptionNode;
-import org.graalvm.compiler.nodes.PiNode;
-import org.graalvm.compiler.nodes.BeginNode;
-import org.graalvm.compiler.nodes.ConstantNode;
-import org.graalvm.compiler.lir.ConstantValue;
-import org.graalvm.compiler.nodeinfo.Verbosity;
 import org.graalvm.compiler.nodes.virtual.CommitAllocationNode;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.Optional;
+
+import com.oracle.graal.pointsto.meta.AnalysisField;
+import com.oracle.graal.pointsto.meta.AnalysisMetaAccess;
+import com.oracle.graal.pointsto.meta.AnalysisMethod;
+import com.oracle.graal.pointsto.meta.AnalysisType;
+import com.oracle.graal.reachability.ReachabilityAnalysisMethod;
+import com.oracle.svm.core.meta.DirectSubstrateObjectConstant;
+import com.oracle.svm.hosted.analysis.Inflation;
 import com.oracle.svm.hosted.prophet.model.RESTParameter;
-import com.oracle.svm.hosted.prophet.model.Entity;
 import com.oracle.svm.hosted.prophet.model.RestCall;
+
+import jdk.vm.ci.meta.PrimitiveConstant;
+import jdk.vm.ci.meta.ResolvedJavaMethod.Parameter;
 
 public class RestCallExtraction {
 
@@ -64,7 +49,7 @@ public class RestCallExtraction {
     public static Set<RestCall> extractClassRestCalls(Class<?> clazz, AnalysisMetaAccess metaAccess, Inflation bb, Map<String, Object> propMap, String msName) {
         AnalysisType analysisType = metaAccess.lookupJavaType(clazz);
         try {
-            for (AnalysisMethod method : analysisType.getDeclaredMethods()) {
+            for (AnalysisMethod method : ((AnalysisMethod[]) analysisType.getDeclaredMethods())) {
                 try {
                     // if (!method.getQualifiedName().contains("getExams")){
                     //     continue;
@@ -375,8 +360,8 @@ public class RestCallExtraction {
                 // System.out.println("arg is a LOAD_FIELD_NODE, arg = " + arg);
                 LoadFieldNode loadfieldNode = (LoadFieldNode) arg;
                 AnalysisField field = (AnalysisField) loadfieldNode.field();
-                
-                for (java.lang.annotation.Annotation annotation : field.getAnnotations()) {
+
+                for (java.lang.annotation.Annotation annotation : field.getWrapped().getAnnotations()) {
                     if (annotation.annotationType().getName().contains("Value")) {
                         // System.out.println("Load field with value annotation");
                         // System.out.println("methods = " + annotation.annotationType().getMethods());

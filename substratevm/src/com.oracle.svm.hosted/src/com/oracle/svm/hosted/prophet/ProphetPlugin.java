@@ -4,19 +4,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-import javax.management.RuntimeErrorException;
-
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.graalvm.compiler.options.Option;
@@ -26,18 +20,11 @@ import com.oracle.graal.pointsto.meta.AnalysisUniverse;
 import com.oracle.svm.core.option.HostedOptionKey;
 import com.oracle.svm.hosted.ImageClassLoader;
 import com.oracle.svm.hosted.analysis.Inflation;
+import com.oracle.svm.hosted.prophet.model.Endpoint;
 import com.oracle.svm.hosted.prophet.model.Entity;
-import com.oracle.svm.hosted.prophet.model.Field;
 import com.oracle.svm.hosted.prophet.model.Module;
 import com.oracle.svm.hosted.prophet.model.Name;
-import java.util.*;
-import java.util.Optional;
-
-import com.oracle.svm.hosted.prophet.model.Endpoint;
 import com.oracle.svm.hosted.prophet.model.RestCall;
-import com.oracle.svm.hosted.prophet.RestDump;
-
-import com.oracle.svm.hosted.prophet.Logger;
 
 public class ProphetPlugin {
 
@@ -95,9 +82,9 @@ public class ProphetPlugin {
         String basePackage = Options.ProphetBasePackage.getValue();
         String msName = Options.ProphetMicroserviceName.getValue();
 
-        if (msName == null){
+        if (msName == null) {
             throw new RuntimeException("ProphetMicroserviceName option was not provided");
-        }else if (basePackage == null){
+        } else if (basePackage == null) {
             throw new RuntimeException("ProphetMicroserviceName option was not provided");
         }
 
@@ -134,7 +121,7 @@ public class ProphetPlugin {
 
     private Module doRun() {
         URL enumeration = loader.getClassLoader().getResource("application.yml");
-        if (enumeration != null){
+        if (enumeration != null) {
             try {
                 this.propMap = new org.yaml.snakeyaml.Yaml().load(new FileReader(enumeration.getFile()));
             } catch (FileNotFoundException e) {
@@ -153,28 +140,12 @@ public class ProphetPlugin {
 
         logger.info("Amount of classes = " + classes.size());
         for (Class<?> clazz : classes) {
-            if (extractRestCalls) {
-                RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb);
-            EndpointExtraction.extractEndpoints(clazz, metaAccess, bb, this.propMap);
-            Annotation[] annotations = clazz.getAnnotations();
-            for (Annotation ann : annotations) {
-                if (ann.annotationType().getName().startsWith("javax.persistence.Entity")) {
-                    Entity entity = processEntity(clazz, ann);
-                    entities.add(entity);
-                }
-            }
-
             // add if class is entity
             Optional<Entity> ent = EntityExtraction.extractClassEntityCalls(clazz, metaAccess, bb);
             ent.ifPresent(entities::add);
             Set<RestCall> restCalls = RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap, Options.ProphetMicroserviceName.getValue());
             restCallList.addAll(restCalls);
-            if (extractRestCalls){
-                EndpointExtraction.extractEndpoints(clazz, metaAccess, bb);
-                //RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap);
-            }
-            RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap);
-            //ENDPOINT EXTRACTION HERE
+            // ENDPOINT EXTRACTION HERE
             Set<Endpoint> endpoints = EndpointExtraction.extractEndpoints(clazz, metaAccess, bb, Options.ProphetMicroserviceName.getValue());
             endpointList.addAll(endpoints);
 
@@ -182,53 +153,10 @@ public class ProphetPlugin {
         return new Module(new Name(msName), entities, restCallList, endpointList);
     }
 
-    // private void dumpAllClasses() {
-    // logger.debug("---All app classes---");
-    // allClasses.forEach(System.out::println);
-    // logger.debug("---------------------");
-    // }
-
-    private Set<Entity> filterEntityClasses(List<Class<?>> classes) {
-        var entities = new HashSet<Entity>();
-        for (Class<?> clazz : classes) {
-            Annotation[] annotations = clazz.getAnnotations();
-            for (Annotation ann : annotations) {
-                if (ann.annotationType().getName().startsWith("javax.persistence.Entity")) {
-                    Entity entity = processEntity(clazz, ann);
-                    entities.add(entity);
-                }
-            }
-        }
-        return entities;
-    }
-
-    // private Set<Entity> filterEntityClasses(List<Class<?>> classes) {
-    //     var entities = new HashSet<Entity>();
-    //     for (Class<?> clazz : classes) {
-    //         Annotation[] annotations = clazz.getAnnotations();
-    //         for (Annotation ann : annotations) {
-    //             if (ann.annotationType().getName().startsWith("javax.persistence.Entity")) {
-    //                 Entity entity = processEntity(clazz, ann);
-    //                 entities.add(entity);
-    //             }
-    //         }
-    //     }
-    //     return entities;
-    // }
-
     private List<Class<?>> filterRelevantClasses() {
         var res = new ArrayList<Class<?>>();
         for (Class<?> applicationClass : allClasses) {
             if (applicationClass.getName().startsWith(basePackage) && !applicationClass.isInterface())
-                res.add(applicationClass);
-        }
-        return res;
-    }
-
-    private List<Class<?>> filterClasses() {
-        var res = new ArrayList<Class<?>>();
-        for (Class<?> applicationClass : allClasses) {
-            if (applicationClass.getName().startsWith(basePackage))
                 res.add(applicationClass);
         }
         return res;
