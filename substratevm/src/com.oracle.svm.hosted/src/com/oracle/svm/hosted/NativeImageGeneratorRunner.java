@@ -44,7 +44,6 @@ import java.util.Set;
 import java.util.TimerTask;
 import java.util.stream.Collectors;
 
-import com.oracle.svm.hosted.prophet.ProphetPlugin;
 import org.graalvm.collections.Pair;
 import org.graalvm.nativeimage.Platform;
 import org.graalvm.nativeimage.c.function.CEntryPoint;
@@ -73,6 +72,7 @@ import com.oracle.svm.core.util.VMError;
 import com.oracle.svm.hosted.code.CEntryPointData;
 import com.oracle.svm.hosted.image.AbstractImage.NativeImageKind;
 import com.oracle.svm.hosted.option.HostedOptionParser;
+import com.oracle.svm.hosted.prophet.ProphetPlugin;
 import com.oracle.svm.util.ClassUtil;
 import com.oracle.svm.util.LogUtils;
 import com.oracle.svm.util.ModuleSupport;
