@@ -1,7 +1,6 @@
 package com.oracle.svm.hosted.prophet.model;
 
 import java.util.Set;
-import java.util.List;
 
 public class Module {
 
@@ -17,23 +16,36 @@ public class Module {
         this.restCalls = restCalls;
         this.endpoints = endpoints;
     }
-    
+
+    public String shortSummary() {
+        return "Module(name=" +
+                        name +
+                        ",entities=" +
+                        entities.size() +
+                        ",restcalls=" +
+                        restCalls.size() +
+                        ",endpoints=" +
+                        endpoints.size() +
+                        ')';
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("MODULE NAME = ").append(name).append("\n").append("\nENTITIES = \n").append(setToString(entities))
-                .append("\nREST_CALLS = \n").append(setToString(restCalls)).append("\nENDPOINTS = \n" ).append(setToString(endpoints))
-                .append('\n');
+                        .append("\nREST_CALLS = \n").append(setToString(restCalls)).append("\nENDPOINTS = \n").append(setToString(endpoints))
+                        .append('\n');
         return sb.toString();
     }
 
-    private String setToString(Set<?> l){
+    private String setToString(Set<?> l) {
         StringBuilder sb = new StringBuilder();
-        for (var v : l){
+        for (var v : l) {
             sb.append("\t").append(v.toString()).append("\n");
         }
         return sb.toString();
     }
+
     public Name getName() {
         return name;
     }

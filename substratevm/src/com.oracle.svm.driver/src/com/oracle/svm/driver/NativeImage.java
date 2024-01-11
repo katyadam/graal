@@ -1791,7 +1791,16 @@ public class NativeImage {
         try {
             p = pb.inheritIO().start();
             imageBuilderPid = p.pid();
-            return p.waitFor();
+            System.out.println("Pid of the image builder is " + imageBuilderPid);
+            var prophetPluginHome = Objects.requireNonNull(System.getenv("PROPHET_PLUGIN_HOME"),"PROPHET_PLUGIN_HOME not set");
+            Path.of(prophetPluginHome,"graal-prophet-utils","measure_rss.sh")
+            var rssWatcher = new ProcessBuilder().command("/Users/dkozak/Projects/graal-prophet/measure_rss.sh", imageBuilderPid + "").inheritIO().start();
+            var before = System.currentTimeMillis();
+            int resCode = p.waitFor();
+            var duration = System.currentTimeMillis() - before;
+            System.out.println("Prophet Plugin took " + duration + " ms");
+            rssWatcher.waitFor();
+            return resCode;
         } catch (IOException | InterruptedException e) {
             throw showError(e.getMessage());
         } finally {

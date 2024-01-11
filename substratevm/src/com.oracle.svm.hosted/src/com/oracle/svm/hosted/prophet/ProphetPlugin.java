@@ -99,6 +99,7 @@ public class ProphetPlugin {
         restDump.writeOutEndpoints(module.getEndpoints(), Options.ProphetEndpointOutputFile.getValue());
 
         dumpModule(module);
+        logger.info("Final summary: " + module.shortSummary());
     }
 
     private static void dumpModule(Module module) {
