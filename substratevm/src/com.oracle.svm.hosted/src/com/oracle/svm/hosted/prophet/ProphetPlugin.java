@@ -25,6 +25,7 @@ import com.oracle.svm.hosted.prophet.model.Entity;
 import com.oracle.svm.hosted.prophet.model.Module;
 import com.oracle.svm.hosted.prophet.model.Name;
 import com.oracle.svm.hosted.prophet.model.RestCall;
+import com.oracle.svm.hosted.prophet.model.Method;
 
 public class ProphetPlugin {
 
@@ -76,6 +77,9 @@ public class ProphetPlugin {
         @Option(help = "Where to store the endpoint output")//
         public static final HostedOptionKey<String> ProphetEndpointOutputFile = new HostedOptionKey<>(null);
 
+        @Option(help = "Where to store the method output")//
+        public static final HostedOptionKey<String> ProphetMethodOutputFile = new HostedOptionKey<>(null);
+
     }
 
     public static void run(ImageClassLoader loader, AnalysisUniverse aUniverse, AnalysisMetaAccess metaAccess, Inflation bb) {
@@ -97,6 +101,7 @@ public class ProphetPlugin {
         RestDump restDump = new RestDump();
         restDump.writeOutRestCalls(module.getRestCalls(), Options.ProphetRestCallOutputFile.getValue());
         restDump.writeOutEndpoints(module.getEndpoints(), Options.ProphetEndpointOutputFile.getValue());
+        restDump.writeOutMethods(module.getMethods(), Options.ProphetMethodOutputFile.getValue());
 
         dumpModule(module);
         logger.info("Final summary: " + module.shortSummary());
@@ -138,6 +143,7 @@ public class ProphetPlugin {
         var entities = new HashSet<Entity>();
         Set<RestCall> restCallList = new HashSet<RestCall>();
         Set<Endpoint> endpointList = new HashSet<Endpoint>();
+        Set<Method> methodList = new HashSet<>();
 
         logger.info("Amount of classes = " + classes.size());
         for (Class<?> clazz : classes) {
@@ -149,9 +155,11 @@ public class ProphetPlugin {
             // ENDPOINT EXTRACTION HERE
             Set<Endpoint> endpoints = EndpointExtraction.extractEndpoints(clazz, metaAccess, bb, Options.ProphetMicroserviceName.getValue());
             endpointList.addAll(endpoints);
-
+            // METHOD EXTRACTION HERE
+            Set<Method> methods = MethodExtraction.extractClassRestCalls(clazz, metaAccess, Options.ProphetMicroserviceName.getValue());
+            methodList.addAll(methods);
         }
-        return new Module(new Name(msName), entities, restCallList, endpointList);
+        return new Module(new Name(msName), entities, restCallList, endpointList, methodList);
     }
 
     private List<Class<?>> filterRelevantClasses() {
