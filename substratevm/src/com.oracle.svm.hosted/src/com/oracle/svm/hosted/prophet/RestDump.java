@@ -16,7 +16,7 @@ public class RestDump {
     //ENDPOINT CSV ORDER SHOULD BE 
     //msName, endpointInClassName, parentMethod, arguments, path, httpMethod, returnType, isCollection
     //METHOD CSV ORDER SHOULD BE
-    //msName, name, bytecodeHash, parameters
+    //name, bytecodeHash, parameters, annotations
 
     //TO-DO: add header row to csv output!!!
     public void writeOutRestCalls(Set<RestCall> restCalls, String outputFile) {
