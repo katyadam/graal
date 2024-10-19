@@ -6,13 +6,14 @@ import com.oracle.graal.pointsto.meta.AnalysisType;
 import com.oracle.svm.hosted.prophet.model.Method;
 
 import java.security.MessageDigest;
+import java.util.HashSet;
 import java.util.Set;
 
 public class MethodExtraction {
 
-    private static Set<Method> methods;
+    private static Set<Method> methods = new HashSet<>();
 
-    public static Set<Method> extractClassRestCalls(Class<?> clazz, AnalysisMetaAccess metaAccess, String msName) {
+    public static Set<Method> extractClassMethods(Class<?> clazz, AnalysisMetaAccess metaAccess, String msName) {
         AnalysisType analysisType = metaAccess.lookupJavaType(clazz);
 
         try {
