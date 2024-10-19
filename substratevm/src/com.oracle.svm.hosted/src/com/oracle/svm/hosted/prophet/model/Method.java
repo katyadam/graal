@@ -35,11 +35,11 @@ public class Method {
 
     public Set<Parameter> getParameters() { return parameters; }
 
-    public void setParameters(Set<Parameter> parameters) { this.parameters = parameters; }
+    public void setParameters(Parameter[] parameters) { this.parameters = Set.of(parameters); }
 
     public Set<Annotation> getAnnotations() { return annotations; }
 
-    public void setAnnotations(Set<Annotation> annotations) { this.annotations = annotations; }
+    public void setAnnotations(Annotation[] annotations) { this.annotations = Set.of(annotations); }
 
     private String bytesToHex(byte[] bytes) {
         StringBuilder hexString = new StringBuilder();
