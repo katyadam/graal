@@ -3,20 +3,20 @@ package com.oracle.svm.hosted.prophet.model;
 import jdk.vm.ci.meta.ResolvedJavaMethod.Parameter;
 
 import java.lang.annotation.Annotation;
-import java.util.Set;
+import java.util.Arrays;
 
 public class Method {
 
     private String name;
     private String bytecodeHash;
-    private Set<Parameter> parameters;
-    private Set<Annotation> annotations;
+    private Parameter[] parameters;
+    private Annotation[] annotations;
 
     public Method(String name, byte[] bytecode, Parameter[] parameters, Annotation[] annotations) {
         this.name = name;
         this.bytecodeHash = bytesToHex(bytecode);
-        this.parameters = Set.of(parameters);
-        this.annotations = Set.of(annotations);
+        this.parameters = parameters;
+        this.annotations = annotations;
     }
 
     public String getName() {
@@ -33,13 +33,13 @@ public class Method {
         this.bytecodeHash = bytesToHex(bytecodeHash);
     }
 
-    public Set<Parameter> getParameters() { return parameters; }
+    public Parameter[] getParameters() { return parameters; }
 
-    public void setParameters(Parameter[] parameters) { this.parameters = Set.of(parameters); }
+    public void setParameters(Parameter[] parameters) { this.parameters = parameters; }
 
-    public Set<Annotation> getAnnotations() { return annotations; }
+    public Annotation[] getAnnotations() { return annotations; }
 
-    public void setAnnotations(Annotation[] annotations) { this.annotations = Set.of(annotations); }
+    public void setAnnotations(Annotation[] annotations) { this.annotations = annotations; }
 
     private String bytesToHex(byte[] bytes) {
         StringBuilder hexString = new StringBuilder();
@@ -57,7 +57,7 @@ public class Method {
     public String toString() {
         return name + "," +
                 bytecodeHash + "," +
-                parameters + "," +
-                annotations;
+                Arrays.toString(parameters) + "," +
+                Arrays.toString(annotations);
     }
 }
