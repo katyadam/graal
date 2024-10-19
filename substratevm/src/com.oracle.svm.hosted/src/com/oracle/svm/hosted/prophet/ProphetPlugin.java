@@ -156,7 +156,7 @@ public class ProphetPlugin {
             Set<Endpoint> endpoints = EndpointExtraction.extractEndpoints(clazz, metaAccess, bb, Options.ProphetMicroserviceName.getValue());
             endpointList.addAll(endpoints);
             // METHOD EXTRACTION HERE
-            Set<Method> methods = MethodExtraction.extractClassMethods(clazz, metaAccess, Options.ProphetMicroserviceName.getValue());
+            Set<Method> methods = MethodExtraction.extractClassMethods(clazz, metaAccess);
             methodList.addAll(methods);
         }
         return new Module(new Name(msName), entities, restCallList, endpointList, methodList);

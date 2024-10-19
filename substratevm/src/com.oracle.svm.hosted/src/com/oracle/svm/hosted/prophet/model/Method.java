@@ -2,20 +2,21 @@ package com.oracle.svm.hosted.prophet.model;
 
 import jdk.vm.ci.meta.ResolvedJavaMethod.Parameter;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 
 public class Method {
 
     private String name;
-    private String msName;
     private byte[] bytecodeHash;
     private Parameter[] parameters;
+    private Annotation[] annotations;
 
-    public Method(String name, String msName, byte[] bytecode, Parameter[] parameters) {
+    public Method(String name, byte[] bytecode, Parameter[] parameters, Annotation[] annotations) {
         this.name = name;
-        this.msName = msName;
         this.bytecodeHash = bytecode;
         this.parameters = parameters;
+        this.annotations = annotations;
     }
 
     public String getName() {
@@ -42,19 +43,27 @@ public class Method {
         this.parameters = parameters;
     }
 
-    public String getMsName() {
-        return msName;
-    }
+    public Annotation[] getAnnotations() { return annotations; }
 
-    public void setMsName(String msName) {
-        this.msName = msName;
+    public void setAnnotations(Annotation[] annotations) { this.annotations = annotations; }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xFF & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 
     @Override
     public String toString() {
-        return msName + "," +
-                name + "," +
-                bytecodeHash + "," +
-                Arrays.toString(parameters);
+        return name + "," +
+                bytesToHex(bytecodeHash) + "," +
+                Arrays.toString(parameters) + "," +
+                Arrays.toString(annotations);
     }
 }

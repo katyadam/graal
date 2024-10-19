@@ -13,18 +13,17 @@ public class MethodExtraction {
 
     private static Set<Method> methods = new HashSet<>();
 
-    public static Set<Method> extractClassMethods(Class<?> clazz, AnalysisMetaAccess metaAccess, String msName) {
+    public static Set<Method> extractClassMethods(Class<?> clazz, AnalysisMetaAccess metaAccess) {
         AnalysisType analysisType = metaAccess.lookupJavaType(clazz);
 
         try {
             for (AnalysisMethod declaredMethod : ((AnalysisMethod[]) analysisType.getDeclaredMethods())) {
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
-
                 methods.add(new Method(
                         declaredMethod.getName(),
-                        msName,
                         digest.digest(declaredMethod.getCode()),
-                        declaredMethod.getParameters()
+                        declaredMethod.getParameters(),
+                        declaredMethod.getWrapped().getAnnotations()
                 ));
             }
         } catch (Exception | LinkageError ex) {
