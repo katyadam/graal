@@ -21,9 +21,7 @@ public class MethodExtraction {
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
                 methods.add(new Method(
                         declaredMethod.getName(),
-                        digest.digest(declaredMethod.getCode()),
-                        declaredMethod.getParameters(),
-                        declaredMethod.getWrapped().getAnnotations()
+                        digest.digest(declaredMethod.getCode())
                 ));
             }
         } catch (Exception | LinkageError ex) {
