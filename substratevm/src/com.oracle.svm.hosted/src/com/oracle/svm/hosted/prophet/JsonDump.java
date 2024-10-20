@@ -75,8 +75,6 @@ public class JsonDump {
         Field[] fields = object.getClass().getDeclaredFields();
         for (int i = 0; i < fields.length; i++) {
             Field field = fields[i];
-            if (field.getName().equals("methods"))
-                continue;
             appendString(field.getName());
             append(" : ");
             field.setAccessible(true);
