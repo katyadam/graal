@@ -39,8 +39,9 @@ public class Method {
         return hexString.toString();
     }
 
+    // Using "|" as divider, because part of name are commas
     @Override
     public String toString() {
-        return name + "," + bytecodeHash;
+        return name + "|" + bytecodeHash;
     }
 }
