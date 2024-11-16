@@ -21,9 +21,9 @@ public class MethodExtraction {
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
                 StringBuilder sb = new StringBuilder();
                 sb
-                        .append(declaredMethod.getName() + "-----")
-                        .append(declaredMethod.getSignature().getReturnKind() + "-----")
-                        .append(declaredMethod.getQualifiedName() + " ----- ");
+                        .append(declaredMethod.getSignature().getReturnKind())
+                        .append(" ")
+                        .append(declaredMethod.getQualifiedName());
                 methods.add(new Method(
                         sb.toString(),
                         digest.digest(declaredMethod.getCode())
