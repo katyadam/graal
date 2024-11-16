@@ -20,7 +20,6 @@ public class RestDump {
 
     //TO-DO: add header row to csv output!!!
     public void writeOutRestCalls(Set<RestCall> restCalls, String outputFile) {
-
         if (outputFile == null) {
             throw new RuntimeException("ProphetRestCallOutputFile option was not provided");
         }

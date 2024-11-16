@@ -6,6 +6,7 @@ import com.oracle.graal.pointsto.meta.AnalysisType;
 import com.oracle.svm.hosted.prophet.model.Method;
 
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,8 +20,17 @@ public class MethodExtraction {
         try {
             for (AnalysisMethod declaredMethod : ((AnalysisMethod[]) analysisType.getDeclaredMethods())) {
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                StringBuilder sb = new StringBuilder();
+                sb
+                        .append(declaredMethod.getName())
+                        .append(" Signature = (")
+                        .append(declaredMethod.getSignature())
+                        .append(")")
+                        .append(" ")
+                        .append(Arrays.stream(declaredMethod.getParameters())
+                                .map(param -> param.getType().getName() + " " + param.getName() + ", "));
                 methods.add(new Method(
-                        declaredMethod.getName(),
+                        sb.toString(),
                         digest.digest(declaredMethod.getCode())
                 ));
             }

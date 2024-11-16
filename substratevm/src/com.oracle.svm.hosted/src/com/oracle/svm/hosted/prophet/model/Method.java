@@ -5,6 +5,7 @@ public class Method {
     private String name;
     private String bytecodeHash;
 
+
     public Method(String name, byte[] bytecode) {
         this.name = name;
         this.bytecodeHash = bytesToHex(bytecode);
