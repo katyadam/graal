@@ -11,21 +11,18 @@ import java.util.Set;
 
 public class MethodExtraction {
 
-    private static Set<Method> methods = new HashSet<>();
+    private static final Set<Method> methods = new HashSet<>();
 
     public static Set<Method> extractClassMethods(Class<?> clazz, AnalysisMetaAccess metaAccess) {
         AnalysisType analysisType = metaAccess.lookupJavaType(clazz);
-
         try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
             for (AnalysisMethod declaredMethod : ((AnalysisMethod[]) analysisType.getDeclaredMethods())) {
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                StringBuilder sb = new StringBuilder();
-                sb
-                        .append(declaredMethod.getSignature().getReturnKind())
-                        .append(" ")
-                        .append(declaredMethod.getQualifiedName());
+                String methodSignature = declaredMethod.getSignature().getReturnKind() +
+                        " " +
+                        declaredMethod.getQualifiedName();
                 methods.add(new Method(
-                        sb.toString(),
+                        methodSignature,
                         digest.digest(declaredMethod.getCode())
                 ));
             }
