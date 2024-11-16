@@ -5,6 +5,7 @@ import com.oracle.graal.pointsto.meta.AnalysisMethod;
 import com.oracle.graal.pointsto.meta.AnalysisType;
 import com.oracle.svm.hosted.prophet.model.Method;
 
+import java.lang.annotation.Annotation;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -23,12 +24,16 @@ public class MethodExtraction {
                 StringBuilder sb = new StringBuilder();
                 sb
                         .append(declaredMethod.getName())
-                        .append(" Signature = (")
-                        .append(declaredMethod.getSignature())
-                        .append(")")
                         .append(" ")
-                        .append(Arrays.stream(declaredMethod.getParameters())
-                                .map(param -> param.getType().getName() + " " + param.getName() + ", "));
+                        .append(Arrays.deepToString(declaredMethod.getParameterAnnotations()))
+                        .append(" ")
+                        .append(Arrays.stream(declaredMethod.getDeclaredAnnotations()).map(
+                                Annotation::toString
+                        ))
+                        .append("\t")
+                        .append(Arrays.stream(declaredMethod.toParameterTypes()).map(
+                                Object::toString
+                        ));
                 methods.add(new Method(
                         sb.toString(),
                         digest.digest(declaredMethod.getCode())
