@@ -250,7 +250,6 @@ import com.oracle.svm.hosted.meta.HostedMethod;
 import com.oracle.svm.hosted.meta.HostedSnippetReflectionProvider;
 import com.oracle.svm.hosted.meta.HostedType;
 import com.oracle.svm.hosted.meta.HostedUniverse;
-import com.oracle.svm.hosted.prophet.ProphetPlugin;
 import com.oracle.svm.hosted.meta.UniverseBuilder;
 import com.oracle.svm.hosted.option.HostedOptionProvider;
 import com.oracle.svm.hosted.phases.CInterfaceInvocationPlugin;
@@ -261,6 +260,7 @@ import com.oracle.svm.hosted.phases.InjectedAccessorsPlugin;
 import com.oracle.svm.hosted.phases.SubstrateClassInitializationPlugin;
 import com.oracle.svm.hosted.phases.VerifyDeoptLIRFrameStatesPhase;
 import com.oracle.svm.hosted.phases.VerifyNoGuardsPhase;
+import com.oracle.svm.hosted.prophet.ProphetPlugin;
 import com.oracle.svm.hosted.reflect.proxy.ProxyRenamingSubstitutionProcessor;
 import com.oracle.svm.hosted.snippets.SubstrateGraphBuilderPlugins;
 import com.oracle.svm.hosted.substitute.AnnotationSubstitutionProcessor;
@@ -589,15 +589,6 @@ public class NativeImageGenerator {
                         DebugCloseable featureCleanup = () -> featureHandler.forEachFeature(Feature::cleanup)) {
             setupNativeImage(options, entryPoints, javaMainSupport, harnessSubstitutions, debug);
 
-            if (ProphetPlugin.Options.ProphetPlugin.getValue()) {
-                BeforeAnalysisAccessImpl config = new BeforeAnalysisAccessImpl(featureHandler, loader, bb, nativeLibraries, debug);
-                featureHandler.forEachFeature(feature -> feature.beforeAnalysis(config));
-                bb.getHostVM().getClassInitializationSupport().setConfigurationSealed(true);
-
-                ProphetPlugin.run(loader, aUniverse, bb.getMetaAccess(), bb);
-                return;
-            }
-
             boolean returnAfterAnalysis = runPointsToAnalysis(imageName, options, debug);
             if (returnAfterAnalysis) {
                 return;
@@ -828,6 +819,8 @@ public class NativeImageGenerator {
 
     @SuppressWarnings("try")
     protected boolean runPointsToAnalysis(String imageName, OptionValues options, DebugContext debug) {
+        boolean runProphet = ProphetPlugin.Options.ProphetPlugin.getValue();
+
         try (Indent ignored = debug.logAndIndent("run analysis")) {
             try (Indent ignored1 = debug.logAndIndent("process analysis initializers")) {
                 BeforeAnalysisAccessImpl config = new BeforeAnalysisAccessImpl(featureHandler, loader, bb, nativeLibraries, debug);
@@ -842,6 +835,11 @@ public class NativeImageGenerator {
                 try {
                     ConcurrentAnalysisAccessImpl concurrentConfig = new ConcurrentAnalysisAccessImpl(featureHandler, loader, bb, nativeLibraries, debug);
                     aUniverse.setConcurrentAnalysisAccess(concurrentConfig);
+
+                    if (runProphet) {
+                        ProphetPlugin.run(loader, aUniverse, bb.getMetaAccess(), bb);
+                    }
+
                     bb.runAnalysis(debug, (universe) -> {
                         try (StopTimer t2 = TimerCollection.createTimerAndStart(TimerCollection.Registry.FEATURES)) {
                             bb.getHostVM().notifyClassReachabilityListener(universe, config);
@@ -897,7 +895,7 @@ public class NativeImageGenerator {
             AnalysisReporter.printAnalysisReports(imageName, options, reportsPath, bb);
             ReachabilityTracePrinter.report(imageName, options, reportsPath, bb);
         }
-        if (NativeImageOptions.ReturnAfterAnalysis.getValue()) {
+        if (runProphet || NativeImageOptions.ReturnAfterAnalysis.getValue()) {
             return true;
         }
         if (NativeImageOptions.ExitAfterAnalysis.getValue()) {

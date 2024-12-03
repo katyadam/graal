@@ -78,7 +78,7 @@ suite = {
                 "artifactId" : "snakeyaml",
                 "version" : "1.28"
             },
-            "digest" : "sha1:7cae037c3014350c923776548e71c9feb7a69259",
+            "digest" : "sha512:448c82a2ba0c644cd4a697f02699829e1e431b9ef69f80b23f5d79d164996cf15841961d7b2246c08aadb910a8ffcdc695b8baedf26066d7fbe11e5d7e6f61bd",
         },
         "LLVM_WRAPPER_SHADOWED": {
             "digest" : "sha512:bcb73fed249ef14e61b7be4153cede889de7aba4344884a54a84fc2d78f59a0b56b5045f390c378ffb727f454f26e48f92d2f6d4bad8a94ff05ad3949335c7f6",

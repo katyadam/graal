@@ -546,6 +546,8 @@ public class NativeImageGeneratorRunner {
                     } else {
                         reporter.printStart(imageName, imageKind);
                     }
+                } else {
+                    reporter.printStart(imageName, imageKind);
                 }
 
                 generator = createImageGenerator(classLoader, optionParser, mainEntryPointData, reporter);

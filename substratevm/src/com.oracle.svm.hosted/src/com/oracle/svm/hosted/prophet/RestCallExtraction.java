@@ -13,7 +13,6 @@ import com.oracle.graal.pointsto.meta.AnalysisMetaAccess;
 import com.oracle.graal.pointsto.meta.AnalysisMethod;
 import com.oracle.graal.pointsto.meta.AnalysisType;
 import com.oracle.graal.reachability.ReachabilityAnalysisMethod;
-import com.oracle.svm.core.meta.DirectSubstrateObjectConstant;
 import com.oracle.svm.hosted.analysis.Inflation;
 import com.oracle.svm.hosted.prophet.model.RESTParameter;
 import com.oracle.svm.hosted.prophet.model.RestCall;
@@ -30,6 +29,7 @@ import jdk.graal.compiler.nodes.StructuredGraph;
 import jdk.graal.compiler.nodes.ValueNode;
 import jdk.graal.compiler.nodes.java.LoadFieldNode;
 import jdk.graal.compiler.nodes.virtual.CommitAllocationNode;
+import jdk.vm.ci.meta.Constant;
 import jdk.vm.ci.meta.PrimitiveConstant;
 import jdk.vm.ci.meta.ResolvedJavaMethod.Parameter;
 
@@ -112,8 +112,8 @@ public class RestCallExtraction {
                                                 }
                                             }
                                             if (returnTypeLikely) {
-                                                DirectSubstrateObjectConstant dsoc = (DirectSubstrateObjectConstant) cn.getValue();
-                                                RETURN_TYPE = dsoc.getObject().toString();
+                                                Constant dsoc = cn.getValue();
+                                                RETURN_TYPE = dsoc.toString();
                                                 callIsCollection = isCollection(RETURN_TYPE);
                                                 RETURN_TYPE = cleanReturnType(RETURN_TYPE);
                                             }
@@ -121,8 +121,8 @@ public class RestCallExtraction {
                                         // MIGHT be URI or portion of URI
                                         else {
 
-                                            DirectSubstrateObjectConstant dsoc = (DirectSubstrateObjectConstant) cn.getValue();
-                                            URI += dsoc.getObject().toString();
+                                            Constant dsoc = cn.getValue();
+                                            URI += dsoc.toString();
                                         }
 
                                     }
@@ -415,8 +415,8 @@ public class RestCallExtraction {
                 ConstantNode cn = (ConstantNode) arg;
                 // PrimitiveConstants can not be converted to DirectSubstrateObjectConstant
                 if (!(cn.getValue() instanceof PrimitiveConstant)) {
-                    DirectSubstrateObjectConstant dsoc = (DirectSubstrateObjectConstant) cn.getValue();
-                    uriPortion = uriPortion + dsoc.getObject().toString();
+                    Constant dsoc = cn.getValue();
+                    uriPortion = uriPortion + dsoc.toString();
                 }
 
             } else if (arg instanceof Invoke) {

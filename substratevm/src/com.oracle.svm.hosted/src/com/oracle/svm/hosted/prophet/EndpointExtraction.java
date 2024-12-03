@@ -57,6 +57,14 @@ public class EndpointExtraction {
                         String httpMethod = null, parentMethod = null, returnTypeResult = null, path = "";
                         boolean returnTypeCollection = false, isEndpoint = false;
                         if (controllerAnnotationNames.contains(annotation.annotationType().getSimpleName())) {
+
+                            /*
+                             * Turn each discovered rest endpoint into a root method for the
+                             * analysis.
+                             */
+                            analysisType.registerAsInstantiated("Rest Controller registered by " + EndpointExtraction.class);
+                            bb.addRootMethod(method, true, "Rest Endpoint registered by " + EndpointExtraction.class);
+
                             isEndpoint = true;
                             // Code to get the parentMethod attribute:
                             // following the rad-source format for the parentMethod JSON need to
