@@ -7,7 +7,7 @@ import com.oracle.svm.hosted.ImageClassLoader;
 import com.oracle.svm.hosted.analysis.Inflation;
 import com.oracle.svm.hosted.prophet.model.Module;
 import com.oracle.svm.hosted.prophet.model.*;
-import org.graalvm.compiler.options.Option;
+import jdk.graal.compiler.options.Option;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
