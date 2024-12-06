@@ -1,30 +1,20 @@
 package com.oracle.svm.hosted.prophet;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
 import com.oracle.graal.pointsto.meta.AnalysisMetaAccess;
 import com.oracle.graal.pointsto.meta.AnalysisUniverse;
 import com.oracle.svm.core.option.HostedOptionKey;
 import com.oracle.svm.hosted.ImageClassLoader;
 import com.oracle.svm.hosted.analysis.Inflation;
-import com.oracle.svm.hosted.prophet.model.Endpoint;
-import com.oracle.svm.hosted.prophet.model.Entity;
 import com.oracle.svm.hosted.prophet.model.Module;
-import com.oracle.svm.hosted.prophet.model.Name;
-import com.oracle.svm.hosted.prophet.model.RestCall;
+import com.oracle.svm.hosted.prophet.model.*;
+import org.graalvm.compiler.options.Option;
 
-import jdk.graal.compiler.options.Option;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
 
 public class ProphetPlugin {
 
@@ -76,6 +66,9 @@ public class ProphetPlugin {
         @Option(help = "Where to store the endpoint output")//
         public static final HostedOptionKey<String> ProphetEndpointOutputFile = new HostedOptionKey<>(null);
 
+        @Option(help = "Where to store the method output")//
+        public static final HostedOptionKey<String> ProphetMethodOutputFile = new HostedOptionKey<>(null);
+
     }
 
     public static void run(ImageClassLoader loader, AnalysisUniverse aUniverse, AnalysisMetaAccess metaAccess, Inflation bb) {
@@ -97,6 +90,7 @@ public class ProphetPlugin {
         RestDump restDump = new RestDump();
         restDump.writeOutRestCalls(module.getRestCalls(), Options.ProphetRestCallOutputFile.getValue());
         restDump.writeOutEndpoints(module.getEndpoints(), Options.ProphetEndpointOutputFile.getValue());
+        restDump.writeOutMethods(module.getMethods(), Options.ProphetMethodOutputFile.getValue());
 
         dumpModule(module);
         logger.info("Final summary: " + module.shortSummary());
@@ -138,6 +132,7 @@ public class ProphetPlugin {
         var entities = new HashSet<Entity>();
         Set<RestCall> restCallList = new HashSet<RestCall>();
         Set<Endpoint> endpointList = new HashSet<Endpoint>();
+        Set<Method> methodList = new HashSet<>();
 
         logger.info("Amount of classes = " + classes.size());
         for (Class<?> clazz : classes) {
@@ -149,9 +144,11 @@ public class ProphetPlugin {
             // ENDPOINT EXTRACTION HERE
             Set<Endpoint> endpoints = EndpointExtraction.extractEndpoints(clazz, metaAccess, bb, Options.ProphetMicroserviceName.getValue());
             endpointList.addAll(endpoints);
-
+            // METHOD EXTRACTION HERE
+            Set<Method> methods = MethodExtraction.extractClassMethods(clazz, metaAccess);
+            methodList.addAll(methods);
         }
-        return new Module(new Name(msName), entities, restCallList, endpointList);
+        return new Module(new Name(msName), entities, restCallList, endpointList, methodList);
     }
 
     private List<Class<?>> filterRelevantClasses() {
