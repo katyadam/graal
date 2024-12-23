@@ -1,5 +1,12 @@
 package com.oracle.svm.hosted.prophet;
 
+import com.oracle.graal.pointsto.meta.AnalysisMetaAccess;
+import com.oracle.graal.pointsto.meta.AnalysisMethod;
+import com.oracle.graal.pointsto.meta.AnalysisType;
+import com.oracle.svm.hosted.analysis.Inflation;
+import com.oracle.svm.hosted.prophet.model.Endpoint;
+import jdk.vm.ci.meta.ResolvedJavaMethod.Parameter;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -8,14 +15,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.oracle.graal.pointsto.meta.AnalysisMetaAccess;
-import com.oracle.graal.pointsto.meta.AnalysisMethod;
-import com.oracle.graal.pointsto.meta.AnalysisType;
-import com.oracle.svm.hosted.analysis.Inflation;
-import com.oracle.svm.hosted.prophet.model.Endpoint;
-
-import jdk.vm.ci.meta.ResolvedJavaMethod.Parameter;
 
 public class EndpointExtraction {
 
@@ -26,6 +25,8 @@ public class EndpointExtraction {
 
     // annotations for controller to get endpoints
     private static final Set<String> controllerAnnotationNames = new HashSet<>(Arrays.asList("GetMapping", "PutMapping", "DeleteMapping", "PostMapping"));
+
+    private static final Set<String> annotatedByToInstantiate = Set.of("Service");
 
     public static Set<Endpoint> extractEndpoints(Class<?> clazz, AnalysisMetaAccess metaAccess, Inflation bb, String msName) {
         AnalysisType analysisType = metaAccess.lookupJavaType(clazz);
@@ -43,6 +44,9 @@ public class EndpointExtraction {
                     fullPath = (String[]) pathMethod.invoke(annotationClass);
                     hasFullPath = true;
                     // System.out.println(fullPath[0]);
+                }
+                if (annotatedByToInstantiate.contains(annotationClass.annotationType().getSimpleName())) {
+                    analysisType.registerAsInstantiated("Rest annotated by smthing registered by " + EndpointExtraction.class);
                 }
             }
 
@@ -218,7 +222,7 @@ public class EndpointExtraction {
     /**
      * Method extracts and cleans the return type value of a controller method (based on a
      * collection or object/primitive data type)
-     * 
+     *
      * @param method an AnalysisMethod
      * @return the method's return type as a string value
      */
