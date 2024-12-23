@@ -8,7 +8,6 @@ import com.oracle.svm.hosted.prophet.model.Endpoint;
 import jdk.vm.ci.meta.ResolvedJavaMethod.Parameter;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -18,7 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class EndpointExtraction {
-
+    private static final Logger logger = Logger.loggerFor(com.oracle.svm.hosted.prophet.ProphetPlugin.class);
     private final static String PUT_MAPPING = "org.springframework.web.bind.annotation.PutMapping";
     private final static String GET_MAPPING = "org.springframework.web.bind.annotation.GetMapping";
     private final static String POST_MAPPING = "org.springframework.web.bind.annotation.PostMapping";
@@ -46,11 +45,11 @@ public class EndpointExtraction {
                     hasFullPath = true;
                     // System.out.println(fullPath[0]);
                 }
-                System.out.println("Looking at annotation: " + annotationClass.annotationType().getName());
+                logger.info("Looking at annotation: " + annotationClass.annotationType().getName());
                 if (annotationClass.annotationType().getName().startsWith(SERVICE_ANNOTATION)) {
                     analysisType.registerAsInstantiated("Rest Controller registered by " + EndpointExtraction.class);
                     bb.addRootClass(EndpointExtraction.class, true, true);
-                    System.out.println("Class: " + clazz.getName() + " should be instantiated!");
+                    logger.info("Class: " + clazz.getName() + " should be instantiated!");
                 }
             }
 
