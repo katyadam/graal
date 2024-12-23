@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class EndpointExtraction {
-    private static final Logger logger = Logger.loggerFor(com.oracle.svm.hosted.prophet.ProphetPlugin.class);
+    private static final Logger logger = Logger.loggerFor(com.oracle.svm.hosted.prophet.EndpointExtraction.class);
     private final static String PUT_MAPPING = "org.springframework.web.bind.annotation.PutMapping";
     private final static String GET_MAPPING = "org.springframework.web.bind.annotation.GetMapping";
     private final static String POST_MAPPING = "org.springframework.web.bind.annotation.PostMapping";
