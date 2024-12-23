@@ -60,6 +60,8 @@ public class EndpointExtraction {
                     // What I will need to extract: String httpMethod, String parentMethod, String
                     // arguments, String returnType
                     Annotation[] annotations = method.getWrapped().getAnnotations();
+                    analysisType.registerAsInstantiated("Rest Controller registered by " + EndpointExtraction.class);
+                    bb.addRootMethod(method, true, "Rest Endpoint registered by " + EndpointExtraction.class);
                     for (Annotation annotation : annotations) {
 
                         ArrayList<String> parameterAnnotationsList = new ArrayList<>();
