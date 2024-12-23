@@ -46,7 +46,8 @@ public class EndpointExtraction {
                     // System.out.println(fullPath[0]);
                 }
                 if (annotatedByToInstantiate.contains(annotationClass.annotationType().getSimpleName())) {
-                    analysisType.registerAsInstantiated("Rest annotated by smthing registered by " + EndpointExtraction.class);
+                    analysisType.registerAsInstantiated("Rest Controller registered by " + EndpointExtraction.class);
+                    bb.addRootClass(EndpointExtraction.class, true, true);
                 }
             }
 
