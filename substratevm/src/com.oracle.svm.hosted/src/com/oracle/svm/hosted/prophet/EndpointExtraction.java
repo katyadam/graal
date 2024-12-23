@@ -30,6 +30,8 @@ public class EndpointExtraction {
 
     public static Set<Endpoint> extractEndpoints(Class<?> clazz, AnalysisMetaAccess metaAccess, Inflation bb, String msName) {
         AnalysisType analysisType = metaAccess.lookupJavaType(clazz);
+        // just doing it for each class...
+        analysisType.registerAsInstantiated("Rest Controller registered by " + EndpointExtraction.class);
         Set<Endpoint> endpoints = new HashSet<Endpoint>();
         try {
 
