@@ -18,6 +18,8 @@ public class MethodExtraction {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             for (AnalysisMethod declaredMethod : ((AnalysisMethod[]) analysisType.getDeclaredMethods())) {
+                declaredMethod.onImplementationInvoked();
+                declaredMethod.registerAsImplementationInvoked("Invoked: " + declaredMethod.getSignature());
                 String methodSignature = declaredMethod.getSignature().getReturnKind() +
                         " " +
                         declaredMethod.getQualifiedName();
