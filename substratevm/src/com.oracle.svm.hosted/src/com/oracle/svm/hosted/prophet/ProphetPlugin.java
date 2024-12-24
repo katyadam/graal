@@ -154,7 +154,10 @@ public class ProphetPlugin {
     private List<Class<?>> filterRelevantClasses() {
         var res = new ArrayList<Class<?>>();
         for (Class<?> applicationClass : allClasses) {
-            if (applicationClass.getName().startsWith(basePackage) && !applicationClass.isInterface())
+//            if (applicationClass.getName().startsWith(basePackage) && !applicationClass.isInterface())
+//                res.add(applicationClass);
+            // removed && !applicationClass.isInterface()
+            if (applicationClass.getName().startsWith(basePackage))
                 res.add(applicationClass);
         }
         return res;
