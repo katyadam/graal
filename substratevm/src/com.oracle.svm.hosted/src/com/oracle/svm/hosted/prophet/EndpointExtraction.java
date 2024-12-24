@@ -35,8 +35,6 @@ public class EndpointExtraction {
             Logger logger
     ) {
         AnalysisType analysisType = metaAccess.lookupJavaType(clazz);
-        // just doing it for each class...
-        analysisType.registerAsInstantiated("Rest Controller registered by " + EndpointExtraction.class);
         Set<Endpoint> endpoints = new HashSet<Endpoint>();
         try {
 

@@ -142,6 +142,7 @@ public class ProphetPlugin {
             Set<RestCall> restCalls = RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap, Options.ProphetMicroserviceName.getValue());
             restCallList.addAll(restCalls);
             // ENDPOINT EXTRACTION HERE
+            logger.info("Looking at class: " + clazz.getName());
             Set<Endpoint> endpoints = EndpointExtraction.extractEndpoints(clazz, metaAccess, bb, Options.ProphetMicroserviceName.getValue(), logger);
             endpointList.addAll(endpoints);
             // METHOD EXTRACTION HERE
@@ -154,10 +155,7 @@ public class ProphetPlugin {
     private List<Class<?>> filterRelevantClasses() {
         var res = new ArrayList<Class<?>>();
         for (Class<?> applicationClass : allClasses) {
-//            if (applicationClass.getName().startsWith(basePackage) && !applicationClass.isInterface())
-//                res.add(applicationClass);
-            // removed && !applicationClass.isInterface()
-            if (applicationClass.getName().startsWith(basePackage))
+            if (applicationClass.getName().startsWith(basePackage) && !applicationClass.isInterface())
                 res.add(applicationClass);
         }
         return res;
