@@ -17,7 +17,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class EndpointExtraction {
-    private static final Logger logger = Logger.loggerFor(com.oracle.svm.hosted.prophet.EndpointExtraction.class);
     private final static String PUT_MAPPING = "org.springframework.web.bind.annotation.PutMapping";
     private final static String GET_MAPPING = "org.springframework.web.bind.annotation.GetMapping";
     private final static String POST_MAPPING = "org.springframework.web.bind.annotation.PostMapping";
@@ -28,7 +27,13 @@ public class EndpointExtraction {
     private static final Set<String> controllerAnnotationNames = new HashSet<>(Arrays.asList("GetMapping", "PutMapping", "DeleteMapping", "PostMapping"));
 
 
-    public static Set<Endpoint> extractEndpoints(Class<?> clazz, AnalysisMetaAccess metaAccess, Inflation bb, String msName) {
+    public static Set<Endpoint> extractEndpoints(
+            Class<?> clazz,
+            AnalysisMetaAccess metaAccess,
+            Inflation bb,
+            String msName,
+            Logger logger
+    ) {
         AnalysisType analysisType = metaAccess.lookupJavaType(clazz);
         // just doing it for each class...
         analysisType.registerAsInstantiated("Rest Controller registered by " + EndpointExtraction.class);
@@ -60,8 +65,6 @@ public class EndpointExtraction {
                     // What I will need to extract: String httpMethod, String parentMethod, String
                     // arguments, String returnType
                     Annotation[] annotations = method.getWrapped().getAnnotations();
-                    analysisType.registerAsInstantiated("Rest Controller registered by " + EndpointExtraction.class);
-                    bb.addRootMethod(method, true, "Rest Endpoint registered by " + EndpointExtraction.class);
                     for (Annotation annotation : annotations) {
 
                         ArrayList<String> parameterAnnotationsList = new ArrayList<>();

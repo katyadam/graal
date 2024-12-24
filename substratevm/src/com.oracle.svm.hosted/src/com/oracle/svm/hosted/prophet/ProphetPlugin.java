@@ -142,7 +142,7 @@ public class ProphetPlugin {
             Set<RestCall> restCalls = RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap, Options.ProphetMicroserviceName.getValue());
             restCallList.addAll(restCalls);
             // ENDPOINT EXTRACTION HERE
-            Set<Endpoint> endpoints = EndpointExtraction.extractEndpoints(clazz, metaAccess, bb, Options.ProphetMicroserviceName.getValue());
+            Set<Endpoint> endpoints = EndpointExtraction.extractEndpoints(clazz, metaAccess, bb, Options.ProphetMicroserviceName.getValue(), logger);
             endpointList.addAll(endpoints);
             // METHOD EXTRACTION HERE
             Set<Method> methods = MethodExtraction.extractClassMethods(clazz, metaAccess);
