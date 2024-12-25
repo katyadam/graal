@@ -23,7 +23,7 @@ public class EndpointExtraction {
     private final static String DELETE_MAPPING = "org.springframework.web.bind.annotation.DeleteMapping";
     private static final Logger logger = Logger.loggerFor(EndpointExtraction.class);
     // annotations for controller to get endpoints
-    private static final Set<String> controllerAnnotationNames = new HashSet<>(Arrays.asList("GetMapping", "PutMapping", "DeleteMapping", "PostMapping", "Override"));
+    private static final Set<String> controllerAnnotationNames = new HashSet<>(Arrays.asList("GetMapping", "PutMapping", "DeleteMapping", "PostMapping"));
 
 
     public static Set<Endpoint> extractEndpoints(
@@ -51,7 +51,7 @@ public class EndpointExtraction {
                 logger.info("Class: " + clazz.getName() +  " -- Looking at annotation: " + annotationClass.annotationType().getSimpleName());
                 if (annotationClass.annotationType().getSimpleName().equals("Service")) {
                     logger.info("True");
-                    analysisType.registerAsInstantiated("Rest Controller registered by " + EndpointExtraction.class);
+                    analysisType.registerAsInstantiated("Service registered by " + EndpointExtraction.class);
                     bb.addRootClass(EndpointExtraction.class, true, true);
                 }
             }
