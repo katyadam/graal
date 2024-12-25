@@ -37,7 +37,6 @@ public class EntityExtraction {
 
                 try {
                     // Spring
-                    field.registerAsFolded();
                     if (field.getWrapped().getAnnotations().length > 0 || isLombok(analysisType)) {
                         String typeName = field.getWrapped().getType().toString();
                         // Handles HotSpotType and HotSpotResolvedPrimitiveType
