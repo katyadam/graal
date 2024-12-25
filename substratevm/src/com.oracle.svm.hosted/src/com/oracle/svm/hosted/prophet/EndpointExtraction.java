@@ -21,7 +21,6 @@ public class EndpointExtraction {
     private final static String GET_MAPPING = "org.springframework.web.bind.annotation.GetMapping";
     private final static String POST_MAPPING = "org.springframework.web.bind.annotation.PostMapping";
     private final static String DELETE_MAPPING = "org.springframework.web.bind.annotation.DeleteMapping";
-    public static final String SERVICE_ANNOTATION = "org.springframework.stereotype.Service";
 
     // annotations for controller to get endpoints
     private static final Set<String> controllerAnnotationNames = new HashSet<>(Arrays.asList("GetMapping", "PutMapping", "DeleteMapping", "PostMapping"));
@@ -31,8 +30,7 @@ public class EndpointExtraction {
             Class<?> clazz,
             AnalysisMetaAccess metaAccess,
             Inflation bb,
-            String msName,
-            Logger logger
+            String msName
     ) {
         AnalysisType analysisType = metaAccess.lookupJavaType(clazz);
         Set<Endpoint> endpoints = new HashSet<Endpoint>();
@@ -50,11 +48,9 @@ public class EndpointExtraction {
                     hasFullPath = true;
                     // System.out.println(fullPath[0]);
                 }
-                logger.info("Looking at annotation: " + annotationClass.annotationType().getName());
-                if (annotationClass.annotationType().getName().startsWith(SERVICE_ANNOTATION)) {
+                if (annotationClass.annotationType().getSimpleName().equals("Service")) {
                     analysisType.registerAsInstantiated("Rest Controller registered by " + EndpointExtraction.class);
                     bb.addRootClass(EndpointExtraction.class, true, true);
-                    logger.info("Class: " + clazz.getName() + " should be instantiated!");
                 }
             }
 
