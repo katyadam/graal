@@ -136,7 +136,7 @@ public class ProphetPlugin {
         classes.forEach(clazz -> {
             logger.info("Class: " + clazz.getName());
         });
-        logger.info("Amount of classes === " + classes.size());
+        logger.info("Amount of classes = " + classes.size());
         for (Class<?> clazz : classes) {
             // add if class is entity
             Optional<Entity> ent = EntityExtraction.extractClassEntityCalls(clazz, metaAccess, bb);
