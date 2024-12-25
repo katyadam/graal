@@ -133,17 +133,15 @@ public class ProphetPlugin {
         Set<RestCall> restCallList = new HashSet<RestCall>();
         Set<Endpoint> endpointList = new HashSet<Endpoint>();
         Set<Method> methodList = new HashSet<>();
-
+        classes.forEach(clazz -> {logger.info("Class: " + clazz.getName());});
         logger.info("Amount of classes = " + classes.size());
         for (Class<?> clazz : classes) {
-            logger.info("Class: " + clazz.getName());
             // add if class is entity
             Optional<Entity> ent = EntityExtraction.extractClassEntityCalls(clazz, metaAccess, bb);
             ent.ifPresent(entities::add);
             Set<RestCall> restCalls = RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap, Options.ProphetMicroserviceName.getValue());
             restCallList.addAll(restCalls);
             // ENDPOINT EXTRACTION HERE
-            logger.info("Looking at class: " + clazz.getName());
             Set<Endpoint> endpoints = EndpointExtraction.extractEndpoints(clazz, metaAccess, bb, Options.ProphetMicroserviceName.getValue(), logger);
             endpointList.addAll(endpoints);
             // METHOD EXTRACTION HERE
