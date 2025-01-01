@@ -52,7 +52,6 @@ public class EndpointExtraction {
                 if (annotationClass.annotationType().getSimpleName().equals("Service")) {
                     logger.info("True");
                     analysisType.registerAsInstantiated("Service registered by " + EndpointExtraction.class);
-                    bb.addRootClass(EndpointExtraction.class, true, true);
                 }
             }
 
@@ -73,6 +72,7 @@ public class EndpointExtraction {
                              * analysis.
                              */
                             analysisType.registerAsInstantiated("Rest Controller registered by " + EndpointExtraction.class);
+                            bb.addRootClass(analysisType, true, false);
                             bb.addRootMethod(method, true, "Rest Endpoint registered by " + EndpointExtraction.class);
 
                             isEndpoint = true;
