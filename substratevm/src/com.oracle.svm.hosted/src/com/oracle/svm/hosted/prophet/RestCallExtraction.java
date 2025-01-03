@@ -122,8 +122,8 @@ public class RestCallExtraction {
                                         // MIGHT be URI or portion of URI
                                         else {
 
-                                            Constant dsoc = cn.getValue();
-                                            URI += dsoc.toValueString();
+                                            DirectSubstrateObjectConstant dsoc = (DirectSubstrateObjectConstant)cn.getValue();
+                                            URI += dsoc.getObject().toString();
                                         }
 
                                     }
