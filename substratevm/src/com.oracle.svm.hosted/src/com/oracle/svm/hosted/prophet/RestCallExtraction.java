@@ -13,6 +13,7 @@ import com.oracle.graal.pointsto.meta.AnalysisMetaAccess;
 import com.oracle.graal.pointsto.meta.AnalysisMethod;
 import com.oracle.graal.pointsto.meta.AnalysisType;
 import com.oracle.graal.reachability.ReachabilityAnalysisMethod;
+import com.oracle.svm.core.meta.DirectSubstrateObjectConstant;
 import com.oracle.svm.hosted.analysis.Inflation;
 import com.oracle.svm.hosted.prophet.model.RESTParameter;
 import com.oracle.svm.hosted.prophet.model.RestCall;
@@ -112,8 +113,8 @@ public class RestCallExtraction {
                                                 }
                                             }
                                             if (returnTypeLikely) {
-                                                Constant dsoc = cn.getValue();
-                                                RETURN_TYPE = dsoc.toString();
+                                                DirectSubstrateObjectConstant dsoc = (DirectSubstrateObjectConstant)cn.getValue();
+                                                RETURN_TYPE = dsoc.getObject().toString();
                                                 callIsCollection = isCollection(RETURN_TYPE);
                                                 RETURN_TYPE = cleanReturnType(RETURN_TYPE);
                                             }
@@ -121,8 +122,8 @@ public class RestCallExtraction {
                                         // MIGHT be URI or portion of URI
                                         else {
 
-                                            Constant dsoc = cn.getValue();
-                                            URI += dsoc.toString();
+                                            DirectSubstrateObjectConstant dsoc = (DirectSubstrateObjectConstant)cn.getValue();
+                                            URI += dsoc.getObject().toString();
                                         }
 
                                     }
