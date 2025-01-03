@@ -113,8 +113,8 @@ public class RestCallExtraction {
                                                 }
                                             }
                                             if (returnTypeLikely) {
-                                                DirectSubstrateObjectConstant dsoc = (DirectSubstrateObjectConstant)cn.getValue();
-                                                RETURN_TYPE = dsoc.getObject().toString();
+                                                Constant dsoc = cn.getValue();
+                                                RETURN_TYPE = dsoc.toString();
                                                 callIsCollection = isCollection(RETURN_TYPE);
                                                 RETURN_TYPE = cleanReturnType(RETURN_TYPE);
                                             }
@@ -122,8 +122,8 @@ public class RestCallExtraction {
                                         // MIGHT be URI or portion of URI
                                         else {
 
-                                            DirectSubstrateObjectConstant dsoc = (DirectSubstrateObjectConstant)cn.getValue();
-                                            URI += dsoc.getObject().toString();
+                                            Constant dsoc = cn.getValue();
+                                            URI += dsoc.getClass().toString();
                                         }
 
                                     }
@@ -302,7 +302,7 @@ public class RestCallExtraction {
 
     private static String extractVirtualInstance(String input) {
         String regex = ".*VirtualInstance\\((.*?)\\)\\s.*"; // regex pattern to match
-                                                            // "VirtualInstance(?)"
+        // "VirtualInstance(?)"
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(input);
         if (matcher.matches()) {
@@ -415,9 +415,9 @@ public class RestCallExtraction {
             } else if (arg instanceof ConstantNode) {
                 ConstantNode cn = (ConstantNode) arg;
                 // PrimitiveConstants can not be converted to DirectSubstrateObjectConstant
-                if (!(cn.getValue() instanceof PrimitiveConstant)) {
-                    Constant dsoc = cn.getValue();
-                    uriPortion = uriPortion + dsoc.toString();
+                if (!(cn.getValue() instanceof PrimitiveConstant)){
+                    DirectSubstrateObjectConstant dsoc = (DirectSubstrateObjectConstant)cn.getValue();
+                    uriPortion = uriPortion + dsoc.getObject().toString();
                 }
 
             } else if (arg instanceof Invoke) {
@@ -426,7 +426,6 @@ public class RestCallExtraction {
             } else {
                 for (Node n : inputsList) {
                     if (n instanceof Invoke) {
-                        ;
                         uriPortion = uriPortion + extractURI(((Invoke) n).callTarget(), propMap);
                     }
                 }
@@ -438,7 +437,7 @@ public class RestCallExtraction {
 
     /**
      * given a target method's qualified name, return http method type
-     * 
+     *
      * @param input targe method's qualified name
      * @return http method type extracted
      */
@@ -465,7 +464,7 @@ public class RestCallExtraction {
 
     /**
      * extract the method the rest call is being in
-     * 
+     *
      * @param input the method's qualified name
      * @return the method the call is being made in
      */
