@@ -13,7 +13,6 @@ import com.oracle.graal.pointsto.meta.AnalysisMetaAccess;
 import com.oracle.graal.pointsto.meta.AnalysisMethod;
 import com.oracle.graal.pointsto.meta.AnalysisType;
 import com.oracle.graal.reachability.ReachabilityAnalysisMethod;
-import com.oracle.svm.core.meta.DirectSubstrateObjectConstant;
 import com.oracle.svm.hosted.analysis.Inflation;
 import com.oracle.svm.hosted.prophet.model.RESTParameter;
 import com.oracle.svm.hosted.prophet.model.RestCall;
@@ -47,6 +46,8 @@ public class RestCallExtraction {
 
     public static Set<RestCall> extractClassRestCalls(Class<?> clazz, AnalysisMetaAccess metaAccess, Inflation bb, Map<String, Object> propMap, String msName) {
         AnalysisType analysisType = metaAccess.lookupJavaType(clazz);
+        analysisType.registerAsInstantiated("registered by " + RestCallExtraction.class);
+        bb.addRootClass(analysisType, true, false);
         try {
             for (AnalysisMethod method : ((AnalysisMethod[]) analysisType.getDeclaredMethods())) {
                 try {
@@ -121,9 +122,9 @@ public class RestCallExtraction {
                                         }
                                         // MIGHT be URI or portion of URI
                                         else {
-
-                                            DirectSubstrateObjectConstant dsoc = (DirectSubstrateObjectConstant)cn.getValue();
-                                            URI += dsoc.getObject().toString();
+                                            Constant dsoc = cn.getValue();
+                                            System.out.println("CONSTANT: " + dsoc.toValueString());
+                                            URI += dsoc.toString();
                                         }
 
                                     }
@@ -302,7 +303,7 @@ public class RestCallExtraction {
 
     private static String extractVirtualInstance(String input) {
         String regex = ".*VirtualInstance\\((.*?)\\)\\s.*"; // regex pattern to match
-        // "VirtualInstance(?)"
+                                                            // "VirtualInstance(?)"
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(input);
         if (matcher.matches()) {
@@ -368,8 +369,8 @@ public class RestCallExtraction {
     }
 
     private static String extractURI(CallTargetNode node, Map<String, Object> propMap) {
-        // System.out.println("NODE CALL TARGET: " + node);
-        // System.out.println("NODE CALL TARGET ARGS: " + node.arguments());
+         System.out.println("NODE CALL TARGET: " + node);
+         System.out.println("NODE CALL TARGET ARGS: " + node.arguments());
         String uriPortion = "";
 
         /*
@@ -380,15 +381,15 @@ public class RestCallExtraction {
         for (ValueNode arg : node.arguments()) {
             NodeIterable<Node> inputsList = arg.inputs();
             if (arg instanceof LoadFieldNode) {
-                // System.out.println("arg is a LOAD_FIELD_NODE, arg = " + arg);
+                 System.out.println("arg is a LOAD_FIELD_NODE, arg = " + arg);
                 LoadFieldNode loadfieldNode = (LoadFieldNode) arg;
                 AnalysisField field = (AnalysisField) loadfieldNode.field();
 
                 for (java.lang.annotation.Annotation annotation : field.getWrapped().getAnnotations()) {
                     if (annotation.annotationType().getName().contains("Value")) {
-                        // System.out.println("Load field with value annotation");
-                        // System.out.println("methods = " +
-                        // annotation.annotationType().getMethods());
+                         System.out.println("Load field with value annotation");
+                         System.out.println("methods = " +
+                         annotation.annotationType().getMethods());
                         try {
                             Method valueMethod = annotation.annotationType().getMethod("value");
                             valueMethod.setAccessible(true);
@@ -404,24 +405,24 @@ public class RestCallExtraction {
                 }
 
             } else if (arg instanceof PiNode) {
-                // System.out.println(arg + " is a PiNode");
-                // System.out.println("pi node inputs: " + ((PiNode)arg).inputs());
+                 System.out.println(arg + " is a PiNode");
+                 System.out.println("pi node inputs: " + ((PiNode)arg).inputs());
                 for (Node inputNode : ((PiNode) arg).inputs()) {
                     if (inputNode instanceof Invoke) {
-                        // System.out.println(inputNode + " is Invoke");
+                         System.out.println(inputNode + " is Invoke");
                         uriPortion = uriPortion + extractURI(((Invoke) inputNode).callTarget(), propMap);
                     }
                 }
             } else if (arg instanceof ConstantNode) {
                 ConstantNode cn = (ConstantNode) arg;
                 // PrimitiveConstants can not be converted to DirectSubstrateObjectConstant
-                if (!(cn.getValue() instanceof PrimitiveConstant)){
-                    DirectSubstrateObjectConstant dsoc = (DirectSubstrateObjectConstant)cn.getValue();
-                    uriPortion = uriPortion + dsoc.getObject().toString();
+                if (!(cn.getValue() instanceof PrimitiveConstant)) {
+                    Constant dsoc = cn.getValue();
+                    uriPortion = uriPortion + dsoc.toString();
                 }
 
             } else if (arg instanceof Invoke) {
-                // System.out.println("arg = " + arg + " && is an instance of invoke");
+                 System.out.println("arg = " + arg + " && is an instance of invoke");
                 uriPortion = uriPortion + extractURI(((Invoke) arg).callTarget(), propMap);
             } else {
                 for (Node n : inputsList) {
