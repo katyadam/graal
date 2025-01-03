@@ -123,7 +123,7 @@ public class RestCallExtraction {
                                         else {
 
                                             Constant dsoc = cn.getValue();
-                                            URI += dsoc.getClass().toString();
+                                            URI += dsoc.toValueString();
                                         }
 
                                     }
