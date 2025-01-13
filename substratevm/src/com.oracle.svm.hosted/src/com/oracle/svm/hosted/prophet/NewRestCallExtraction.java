@@ -99,14 +99,14 @@ public class NewRestCallExtraction {
         return String.join("", uriParts.reversed());
     }
 
-    private static String getHeapInstanceValue(InvokeWithExceptionNode node) throws NoSuchFieldException, IllegalAccessException {
+    private static String getHeapInstanceValue(InvokeWithExceptionNode node) {
         NodeInputList<ValueNode> arguments = node.callTarget().arguments();
         StringBuilder builder = new StringBuilder();
         for (ValueNode v : arguments) {
             if (v instanceof ConstantNode) {
                 ImageHeapConstant imageHeapConstant = (ImageHeapConstant) ((ConstantNode) v).getValue();
                 JavaConstant hostedObject = imageHeapConstant.getHostedObject();
-                builder.append(hostedObject.toValueString());
+                builder.append(hostedObject.toValueString().replace("\"", ""));
             } else if (v instanceof InvokeWithExceptionNode) {
                 builder.append(getHeapInstanceValue((InvokeWithExceptionNode) v));
             }
