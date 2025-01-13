@@ -92,7 +92,7 @@ public class NewRestCallExtraction {
         while (currentNode != null) {
             if (currentNode instanceof InvokeWithExceptionNode &&
                     currentNode.toString().endsWith(".append")) {
-                uriParts.add(getHeapInstanceValue((InvokeWithExceptionNode) currentNode));
+                uriParts.add(getHeapInstanceValue((InvokeWithExceptionNode) currentNode).replace("\"", ""));
             }
             currentNode = currentNode.predecessor();
         }
@@ -106,7 +106,7 @@ public class NewRestCallExtraction {
             if (v instanceof ConstantNode) {
                 ImageHeapConstant imageHeapConstant = (ImageHeapConstant) ((ConstantNode) v).getValue();
                 JavaConstant hostedObject = imageHeapConstant.getHostedObject();
-                builder.append(hostedObject.toValueString().replace("\"", ""));
+                builder.append(hostedObject.toValueString());
             } else if (v instanceof InvokeWithExceptionNode) {
                 builder.append(getHeapInstanceValue((InvokeWithExceptionNode) v));
             }
