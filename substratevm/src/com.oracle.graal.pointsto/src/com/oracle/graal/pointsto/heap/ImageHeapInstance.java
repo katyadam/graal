@@ -120,6 +120,10 @@ public final class ImageHeapInstance extends ImageHeapConstant {
         return fieldValues;
     }
 
+    public Object getFieldValue(int fieldIndex) {
+        return getFieldValues()[fieldIndex];
+    }
+
     /**
      * Record the task computing the field value. It will be retrieved and executed when the field
      * is marked as read.

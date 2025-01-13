@@ -110,15 +110,11 @@ public class NewRestCallExtraction {
     // ((ImageHeapConstant) ((ImageHeapInstance)((ConstantNode) node.arguments().get(2)).getValue()).getFieldValues()[2]).toValueString()
     private static String getHttpMethod(CallTargetNode node) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         NodeInputList<ValueNode> arguments = node.arguments();
-        Method method = ImageHeapInstance.class.getDeclaredMethod("getFieldValues");
-        method.setAccessible(true);
         for (ValueNode v : arguments) {
             if (v instanceof ConstantNode && v.toString().contains(HTTP_METHOD_CLASS)) {
                 ConstantNode constantNode = (ConstantNode) v;
                 ImageHeapInstance imageHeapInstance = ((ImageHeapInstance) constantNode.getValue());
-                Object[] fieldValues = (Object[]) method.invoke(imageHeapInstance);
-                System.out.println("fieldValues" + fieldValues);
-                return fieldValues[3].toString();
+                return imageHeapInstance.getFieldValue(2).toString();
             }
         }
         return null;
