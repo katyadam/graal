@@ -1,10 +1,12 @@
 package com.oracle.svm.hosted.prophet;
 
 import com.oracle.graal.pointsto.heap.ImageHeapConstant;
+import com.oracle.graal.pointsto.heap.ImageHeapInstance;
 import com.oracle.graal.pointsto.meta.AnalysisField;
 import com.oracle.graal.pointsto.meta.AnalysisMetaAccess;
 import com.oracle.graal.pointsto.meta.AnalysisMethod;
 import com.oracle.graal.pointsto.meta.AnalysisType;
+import com.oracle.graal.pointsto.meta.PointsToAnalysisField;
 import com.oracle.graal.reachability.ReachabilityAnalysisMethod;
 import com.oracle.svm.hosted.analysis.Inflation;
 import com.oracle.svm.hosted.prophet.model.RESTParameter;
@@ -34,6 +36,7 @@ public class NewRestCallExtraction {
 
     private final static String REST_TEMPLATE_PACKAGE = "org.springframework.web.client.RestTemplate.";
     private final static String HTTP_ENTITY_PACKAGE = "org.springframework.http.HttpEntity";
+    private final static String HTTP_METHOD_CLASS = "springframework/http/HttpMethod";
     private static Set<RestCall> restCalls = new HashSet<>();
 
     public static Set<RestCall> extractClassRestCalls(Class<?> clazz, AnalysisMetaAccess metaAccess, Inflation bb, Map<String, Object> propMap, String msName) {
@@ -97,6 +100,18 @@ public class NewRestCallExtraction {
             currentNode = currentNode.predecessor();
         }
         return String.join("", uriParts.reversed());
+    }
+
+    // ((ImageHeapConstant) ((ImageHeapInstance)((ConstantNode) node.arguments().get(2)).getValue()).getFieldValues()[2]).toValueString()
+    private static String getHttpMethod(CallTargetNode node) {
+        NodeInputList<ValueNode> arguments = node.arguments();
+        for (ValueNode v : arguments) {
+            if (v instanceof ConstantNode && v.toString().contains(HTTP_METHOD_CLASS)) {
+                ConstantNode constantNode = (ConstantNode) v;
+                ImageHeapInstance imageHeapInstance = ((ImageHeapInstance) constantNode.getValue());
+                imageHeapInstance.getFieldValue(null);
+            }
+        }
     }
 
     private static String getHeapInstanceValue(InvokeWithExceptionNode node) {
