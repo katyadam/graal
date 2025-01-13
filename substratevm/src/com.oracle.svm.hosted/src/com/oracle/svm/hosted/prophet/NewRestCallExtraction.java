@@ -7,6 +7,10 @@ import com.oracle.graal.pointsto.meta.AnalysisMetaAccess;
 import com.oracle.graal.pointsto.meta.AnalysisMethod;
 import com.oracle.graal.pointsto.meta.AnalysisType;
 import com.oracle.graal.pointsto.meta.PointsToAnalysisField;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import com.oracle.graal.reachability.ReachabilityAnalysisMethod;
 import com.oracle.svm.hosted.analysis.Inflation;
 import com.oracle.svm.hosted.prophet.model.RESTParameter;
@@ -71,6 +75,7 @@ public class NewRestCallExtraction {
                                 if (RETURN_TYPE == null || RETURN_TYPE.contains("edu.fudan.common.util.Response")) {
                                     RETURN_TYPE = HTTP_ENTITY_PACKAGE;
                                 }
+
                                 RESTParameter param = getParamDetails(callTargetNode, URI.toString());
                                 restCalls.add(new RestCall(HTTP_METHOD_TYPE, PARENT_METHOD, RETURN_TYPE, URI.toString(), callIsCollection, clazz.getCanonicalName(), msName, param));
 
@@ -103,13 +108,17 @@ public class NewRestCallExtraction {
     }
 
     // ((ImageHeapConstant) ((ImageHeapInstance)((ConstantNode) node.arguments().get(2)).getValue()).getFieldValues()[2]).toValueString()
-    private static String getHttpMethod(CallTargetNode node) {
+    private static String getHttpMethod(CallTargetNode node) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         NodeInputList<ValueNode> arguments = node.arguments();
+        Method method = ImageHeapInstance.class.getDeclaredMethod("getFieldValues");
+        method.setAccessible(true);
         for (ValueNode v : arguments) {
             if (v instanceof ConstantNode && v.toString().contains(HTTP_METHOD_CLASS)) {
                 ConstantNode constantNode = (ConstantNode) v;
                 ImageHeapInstance imageHeapInstance = ((ImageHeapInstance) constantNode.getValue());
-                imageHeapInstance.getFieldValue(null);
+                Object[] fieldValues = (Object[]) method.invoke(imageHeapInstance);
+                System.out.println("fieldValues" + fieldValues);
+                return fieldValues[3].toString();
             }
         }
         return null;
