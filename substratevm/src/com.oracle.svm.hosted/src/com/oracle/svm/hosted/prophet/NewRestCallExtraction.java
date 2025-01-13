@@ -107,6 +107,8 @@ public class NewRestCallExtraction {
                 ImageHeapConstant imageHeapConstant = (ImageHeapConstant) ((ConstantNode) v).getValue();
                 JavaConstant hostedObject = imageHeapConstant.getHostedObject();
                 builder.append(hostedObject.toValueString());
+            } else if (v instanceof InvokeWithExceptionNode) {
+                builder.append(getHeapInstanceValue((InvokeWithExceptionNode) v));
             }
         }
         return builder.toString();
