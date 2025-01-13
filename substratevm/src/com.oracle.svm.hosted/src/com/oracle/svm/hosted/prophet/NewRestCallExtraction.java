@@ -114,7 +114,7 @@ public class NewRestCallExtraction {
             if (v instanceof ConstantNode && v.toString().contains(HTTP_METHOD_CLASS)) {
                 ConstantNode constantNode = (ConstantNode) v;
                 ImageHeapInstance imageHeapInstance = ((ImageHeapInstance) constantNode.getValue());
-                return imageHeapInstance.getFieldValue(2).toString();
+                return ((ImageHeapConstant) imageHeapInstance.getFieldValue(2)).toValueString();
             }
         }
         return null;
