@@ -141,7 +141,8 @@ public class ProphetPlugin {
             // add if class is entity
             Optional<Entity> ent = EntityExtraction.extractClassEntityCalls(clazz, metaAccess, bb);
             ent.ifPresent(entities::add);
-            Set<RestCall> restCalls = RestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap, Options.ProphetMicroserviceName.getValue());
+            // NewRestCallExtraction comes with update of graal, RestCallExtraction is the implementation that this class comes out of
+            Set<RestCall> restCalls = NewRestCallExtraction.extractClassRestCalls(clazz, metaAccess, bb, this.propMap, Options.ProphetMicroserviceName.getValue());
             restCallList.addAll(restCalls);
             // ENDPOINT EXTRACTION HERE
             Set<Endpoint> endpoints = EndpointExtraction.extractEndpoints(clazz, metaAccess, bb, Options.ProphetMicroserviceName.getValue());
