@@ -65,7 +65,7 @@ public class NewRestCallExtraction {
                                 }
                                 // RestTemplate is an EXCHANGE, get specific HTTP type
                                 if (HTTP_METHOD_TYPE != null && HTTP_METHOD_TYPE.equals("EXCHANGE")) {
-                                    HTTP_METHOD_TYPE = extractHttpType(callTargetNode);
+                                    HTTP_METHOD_TYPE = getHttpMethod(callTargetNode);
                                 }
                                 // TO-DO: In future try to get what type of HTTP Entity.
                                 if (RETURN_TYPE == null || RETURN_TYPE.contains("edu.fudan.common.util.Response")) {
@@ -112,6 +112,7 @@ public class NewRestCallExtraction {
                 imageHeapInstance.getFieldValue(null);
             }
         }
+        return null;
     }
 
     private static String getHeapInstanceValue(InvokeWithExceptionNode node) {
