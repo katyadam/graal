@@ -392,7 +392,7 @@ public final class CallTreePrinter {
     }
 
     private static void printMethodNodes(Collection<MethodNode> methods, PrintWriter writer) {
-        writer.println(convertToCSV("Id", "Name", "Type", "Parameters", "Return", "Display", "Flags", "IsEntryPoint", "bytecodeHash"));
+        writer.println(convertToCSV("Id", "Name", "Type", "Parameters", "Return", "Display", "Flags", "IsEntryPoint", "BytecodeHash"));
         methods.stream()
                 .map(CallTreePrinter::methodNodeInfo)
                 .map(CallTreePrinter::convertToCSV)
@@ -490,7 +490,7 @@ public final class CallTreePrinter {
                     ? method.format("%P").replace(",", "")
                     : "empty";
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return Arrays.asList(
+            List<String> methodMetadata = Arrays.asList(
                     id == null ? null : Integer.toString(id),
                     method.getName(),
                     method.getDeclaringClass().toJavaName(true),
@@ -498,9 +498,14 @@ public final class CallTreePrinter {
                     method.getSignature().getReturnType().toJavaName(true),
                     display(method),
                     flags(method),
-                    String.valueOf(method.isEntryPoint()),
-                    bytesToHex(digest.digest(method.getCode()))
+                    String.valueOf(method.isEntryPoint())
             );
+            if (method.getCode() != null) {
+                methodMetadata.add(bytesToHex(digest.digest(method.getCode())));
+            } else {
+                methodMetadata.add("null");
+            }
+            return methodMetadata;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
