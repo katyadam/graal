@@ -24,12 +24,16 @@
  */
 package com.oracle.graal.pointsto.reports;
 
-import static com.oracle.graal.pointsto.reports.ReportUtils.CHILD;
-import static com.oracle.graal.pointsto.reports.ReportUtils.CONNECTING_INDENT;
-import static com.oracle.graal.pointsto.reports.ReportUtils.EMPTY_INDENT;
-import static com.oracle.graal.pointsto.reports.ReportUtils.LAST_CHILD;
-import static com.oracle.graal.pointsto.reports.ReportUtils.invokeInfoComparator;
-import static com.oracle.graal.pointsto.reports.ReportUtils.methodComparator;
+import com.oracle.graal.pointsto.BigBang;
+import com.oracle.graal.pointsto.meta.AnalysisMethod;
+import com.oracle.graal.pointsto.meta.AnalysisType;
+import com.oracle.graal.pointsto.meta.AnalysisUniverse;
+import com.oracle.graal.pointsto.meta.InvokeInfo;
+import com.oracle.graal.pointsto.meta.PointsToAnalysisMethod;
+import com.oracle.graal.pointsto.util.AnalysisError;
+import jdk.graal.compiler.java.LambdaUtils;
+import jdk.vm.ci.code.BytecodePosition;
+import jdk.vm.ci.meta.JavaKind;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -37,6 +41,8 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,22 +60,17 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.oracle.graal.pointsto.BigBang;
-import com.oracle.graal.pointsto.meta.AnalysisMethod;
-import com.oracle.graal.pointsto.meta.AnalysisType;
-import com.oracle.graal.pointsto.meta.AnalysisUniverse;
-import com.oracle.graal.pointsto.meta.InvokeInfo;
-import com.oracle.graal.pointsto.meta.PointsToAnalysisMethod;
-import com.oracle.graal.pointsto.util.AnalysisError;
-
-import jdk.graal.compiler.java.LambdaUtils;
-import jdk.vm.ci.code.BytecodePosition;
-import jdk.vm.ci.meta.JavaKind;
+import static com.oracle.graal.pointsto.reports.ReportUtils.CHILD;
+import static com.oracle.graal.pointsto.reports.ReportUtils.CONNECTING_INDENT;
+import static com.oracle.graal.pointsto.reports.ReportUtils.EMPTY_INDENT;
+import static com.oracle.graal.pointsto.reports.ReportUtils.LAST_CHILD;
+import static com.oracle.graal.pointsto.reports.ReportUtils.invokeInfoComparator;
+import static com.oracle.graal.pointsto.reports.ReportUtils.methodComparator;
 
 public final class CallTreePrinter {
 
     public static final Pattern CAMEL_CASE_PATTERN = Pattern.compile(
-                    "\\b[a-zA-Z]|[A-Z]|\\.");
+            "\\b[a-zA-Z]|[A-Z]|\\.");
 
     public static void print(BigBang bb, String reportsPath, String reportName) {
         CallTreePrinter printer = new CallTreePrinter(bb);
@@ -79,7 +80,7 @@ public final class CallTreePrinter {
         switch (optionValue) {
             case TXT:
                 ReportUtils.report("call tree", reportsPath, "call_tree_" + reportName, "txt",
-                                printer::printMethods);
+                        printer::printMethods);
                 break;
             case CSV:
                 printCsvFiles(printer.methodToNode, reportsPath, reportName);
@@ -88,11 +89,11 @@ public final class CallTreePrinter {
                 throw AnalysisError.shouldNotReachHere("Unsupported CallTreeType " + optionValue + " used with PrintAnalysisCallTreeType option");
         }
         ReportUtils.report("list of used methods", reportsPath, "used_methods_" + reportName, "txt",
-                        printer::printUsedMethods);
+                printer::printUsedMethods);
         ReportUtils.report("list of used classes", reportsPath, "used_classes_" + reportName, "txt",
-                        writer -> printer.printClasses(writer, false));
+                writer -> printer.printClasses(writer, false));
         ReportUtils.report("list of used packages", reportsPath, "used_packages_" + reportName, "txt",
-                        writer -> printer.printClasses(writer, true));
+                writer -> printer.printClasses(writer, true));
     }
 
     interface Node {
@@ -268,7 +269,7 @@ public final class CallTreePrinter {
             MethodNode node = iterator.next();
             boolean lastEntryPoint = !iterator.hasNext();
             out.format("%s%s %s, parsing reason:  %s %n", lastEntryPoint ? LAST_CHILD : CHILD, "entry", node.format(),
-                            PointsToAnalysisMethod.unwrapInvokeReason(node.method.getImplementationInvokedReason()));
+                    PointsToAnalysisMethod.unwrapInvokeReason(node.method.getImplementationInvokedReason()));
             printCallTreeNode(out, lastEntryPoint ? EMPTY_INDENT : CONNECTING_INDENT, node);
         }
         out.println();
@@ -283,19 +284,19 @@ public final class CallTreePrinter {
                 if (invoke.callees.size() > 0) {
                     Node calleeNode = invoke.callees.get(0);
                     out.format("%s%s%s %s @bci=%s %n", prefix, (lastInvoke ? LAST_CHILD : CHILD),
-                                    "directly calls", calleeNode.format(), invoke.formatLocation());
+                            "directly calls", calleeNode.format(), invoke.formatLocation());
                     if (calleeNode instanceof MethodNode) {
                         printCallTreeNode(out, prefix + (lastInvoke ? EMPTY_INDENT : CONNECTING_INDENT), (MethodNode) calleeNode);
                     }
                 }
             } else {
                 out.format("%s%s%s %s @bci=%s%n", prefix, (lastInvoke ? LAST_CHILD : CHILD),
-                                "virtually calls", invoke.formatTarget(), invoke.formatLocation());
+                        "virtually calls", invoke.formatTarget(), invoke.formatLocation());
                 for (int calleeIdx = 0; calleeIdx < invoke.callees.size(); calleeIdx++) {
                     boolean lastCallee = calleeIdx == invoke.callees.size() - 1;
                     Node calleeNode = invoke.callees.get(calleeIdx);
                     out.format("%s%s%s %s %n", prefix + (lastInvoke ? EMPTY_INDENT : CONNECTING_INDENT), (lastCallee ? LAST_CHILD : CHILD),
-                                    "is overridden by", calleeNode.format());
+                            "is overridden by", calleeNode.format());
                     if (calleeNode instanceof MethodNode) {
                         printCallTreeNode(out, prefix + (lastInvoke ? EMPTY_INDENT : CONNECTING_INDENT) + (lastCallee ? EMPTY_INDENT : CONNECTING_INDENT), (MethodNode) calleeNode);
                     }
@@ -391,32 +392,32 @@ public final class CallTreePrinter {
     }
 
     private static void printMethodNodes(Collection<MethodNode> methods, PrintWriter writer) {
-        writer.println(convertToCSV("Id", "Name", "Type", "Parameters", "Return", "Display", "Flags", "IsEntryPoint"));
+        writer.println(convertToCSV("Id", "Name", "Type", "Parameters", "Return", "Display", "Flags", "IsEntryPoint", "bytecodeHash"));
         methods.stream()
-                        .map(CallTreePrinter::methodNodeInfo)
-                        .map(CallTreePrinter::convertToCSV)
-                        .forEach(writer::println);
+                .map(CallTreePrinter::methodNodeInfo)
+                .map(CallTreePrinter::convertToCSV)
+                .forEach(writer::println);
     }
 
     private static void printInvokeNodes(Map<AnalysisMethod, MethodNode> methodToNode, PrintWriter writer) {
         writer.println(convertToCSV("Id", "MethodId", "BytecodeIndexes", "TargetId", "IsDirect"));
         methodToNode.values().stream()
-                        .flatMap(node -> node.invokes.stream()
-                                        .filter(invoke -> !invoke.callees.isEmpty())
-                                        .map(invoke -> invokeNodeInfo(methodToNode, node, invoke)))
-                        .map(CallTreePrinter::convertToCSV)
-                        .forEach(writer::println);
+                .flatMap(node -> node.invokes.stream()
+                        .filter(invoke -> !invoke.callees.isEmpty())
+                        .map(invoke -> invokeNodeInfo(methodToNode, node, invoke)))
+                .map(CallTreePrinter::convertToCSV)
+                .forEach(writer::println);
     }
 
     private static void printCallTargets(Map<AnalysisMethod, MethodNode> methodToNode, PrintWriter writer) {
         writer.println(convertToCSV("InvokeId", "TargetId"));
         methodToNode.values().stream()
-                        .flatMap(node -> node.invokes.stream()
-                                        .filter(invoke -> !invoke.callees.isEmpty())
-                                        .flatMap(invoke -> invoke.callees.stream()
-                                                        .map(callee -> callTargetInfo(invoke, callee))))
-                        .map(CallTreePrinter::convertToCSV)
-                        .forEach(writer::println);
+                .flatMap(node -> node.invokes.stream()
+                        .filter(invoke -> !invoke.callees.isEmpty())
+                        .flatMap(invoke -> invoke.callees.stream()
+                                .map(callee -> callTargetInfo(invoke, callee))))
+                .map(CallTreePrinter::convertToCSV)
+                .forEach(writer::println);
     }
 
     private static List<String> methodNodeInfo(MethodNode method) {
@@ -425,11 +426,11 @@ public final class CallTreePrinter {
 
     private static List<String> invokeNodeInfo(Map<AnalysisMethod, MethodNode> methodToNode, MethodNode method, InvokeNode invoke) {
         return Arrays.asList(
-                        String.valueOf(invoke.id),
-                        String.valueOf(method.id),
-                        showBytecodeIndexes(bytecodeIndexes(invoke)),
-                        String.valueOf(methodToNode.get(invoke.targetMethod).id),
-                        String.valueOf(invoke.isDirectInvoke));
+                String.valueOf(invoke.id),
+                String.valueOf(method.id),
+                showBytecodeIndexes(bytecodeIndexes(invoke)),
+                String.valueOf(methodToNode.get(invoke.targetMethod).id),
+                String.valueOf(invoke.isDirectInvoke));
     }
 
     private static List<String> callTargetInfo(InvokeNode invoke, Node callee) {
@@ -460,21 +461,21 @@ public final class CallTreePrinter {
 
     private static void addNode(Node calleeNode, Set<MethodNode> nodes) {
         MethodNode methodNode = calleeNode instanceof MethodNode
-                        ? (MethodNode) calleeNode
-                        : ((MethodNodeReference) calleeNode).methodNode;
+                ? (MethodNode) calleeNode
+                : ((MethodNodeReference) calleeNode).methodNode;
         nodes.add(methodNode);
     }
 
     private static List<Integer> bytecodeIndexes(InvokeNode node) {
         return Stream.of(node.sourceReferences)
-                        .map(source -> source.bci)
-                        .collect(Collectors.toList());
+                .map(source -> source.bci)
+                .collect(Collectors.toList());
     }
 
     private static String showBytecodeIndexes(List<Integer> bytecodeIndexes) {
         return bytecodeIndexes.stream()
-                        .map(String::valueOf)
-                        .collect(Collectors.joining("->"));
+                .map(String::valueOf)
+                .collect(Collectors.joining("->"));
     }
 
     private static List<String> resolvedJavaMethodInfo(Integer id, AnalysisMethod method) {
@@ -484,19 +485,38 @@ public final class CallTreePrinter {
         // with N types
         // see https://neo4j.com/developer/guide-import-csv/#_converting_data_values_with_load_csv
         // for examples
-        final String parameters = method.getSignature().getParameterCount(false) > 0
-                        ? method.format("%P").replace(",", "")
-                        : "empty";
+        try {
+            final String parameters = method.getSignature().getParameterCount(false) > 0
+                    ? method.format("%P").replace(",", "")
+                    : "empty";
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return Arrays.asList(
+                    id == null ? null : Integer.toString(id),
+                    method.getName(),
+                    method.getDeclaringClass().toJavaName(true),
+                    parameters,
+                    method.getSignature().getReturnType().toJavaName(true),
+                    display(method),
+                    flags(method),
+                    String.valueOf(method.isEntryPoint()),
+                    bytesToHex(digest.digest(method.getCode()))
+            );
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
 
-        return Arrays.asList(
-                        id == null ? null : Integer.toString(id),
-                        method.getName(),
-                        method.getDeclaringClass().toJavaName(true),
-                        parameters,
-                        method.getSignature().getReturnType().toJavaName(true),
-                        display(method),
-                        flags(method),
-                        String.valueOf(method.isEntryPoint()));
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xFF & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 
     private static String display(AnalysisMethod method) {
