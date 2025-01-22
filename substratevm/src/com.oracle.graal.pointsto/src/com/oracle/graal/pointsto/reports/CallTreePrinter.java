@@ -490,21 +490,18 @@ public final class CallTreePrinter {
                     ? method.format("%P").replace(",", "")
                     : "empty";
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            List<String> methodMetadata = Arrays.asList(
-                    id == null ? null : Integer.toString(id),
-                    method.getName(),
-                    method.getDeclaringClass().toJavaName(true),
-                    parameters,
-                    method.getSignature().getReturnType().toJavaName(true),
-                    display(method),
-                    flags(method),
-                    String.valueOf(method.isEntryPoint())
-            );
-            if (method.getCode() != null) {
-                methodMetadata.add(bytesToHex(digest.digest(method.getCode())));
-            } else {
-                methodMetadata.add("null");
-            }
+            List<String> methodMetadata = new ArrayList<>();
+            methodMetadata.add(id == null ? "null" : Integer.toString(id));
+            methodMetadata.add(method.getName());
+            methodMetadata.add(method.getDeclaringClass().toJavaName(true));
+            methodMetadata.add(parameters);
+            methodMetadata.add(method.getSignature().getReturnType().toJavaName(true));
+            methodMetadata.add(display(method));
+            methodMetadata.add(flags(method));
+            methodMetadata.add(String.valueOf(method.isEntryPoint()));
+            methodMetadata.add(method.getCode() != null
+                    ? bytesToHex(digest.digest(method.getCode()))
+                    : "null");
             return methodMetadata;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
