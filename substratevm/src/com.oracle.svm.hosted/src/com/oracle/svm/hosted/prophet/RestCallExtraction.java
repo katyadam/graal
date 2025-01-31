@@ -54,7 +54,7 @@ public class RestCallExtraction {
                                 NodeInputList<ValueNode> arguments = callTargetNode.arguments();
 
                                 String HTTP_METHOD_TYPE = parseHttpMethodType(targetMethod.getQualifiedName());
-                                String PARENT_METHOD = method.getQualifiedName();
+                                String PARENT_METHOD = cleanParentMethod(method.getQualifiedName());
                                 String RETURN_TYPE = null;
                                 StringBuilder URI = new StringBuilder();
                                 Boolean callIsCollection = false;
