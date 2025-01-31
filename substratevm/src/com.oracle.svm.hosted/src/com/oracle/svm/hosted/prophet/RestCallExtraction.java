@@ -79,6 +79,7 @@ public class RestCallExtraction {
                                         PARENT_METHOD,
                                         Arrays.stream(method.getParameters())
                                                 .map(ResolvedJavaMethod.Parameter::toString)
+                                                .map(s -> s.split(" ")[0])
                                                 .toList(),
                                         RETURN_TYPE,
                                         URI.toString(),

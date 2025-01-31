@@ -209,6 +209,7 @@ public class EndpointExtraction {
                                     parentMethod,
                                     Arrays.stream(method.getParameters())
                                             .map(Parameter::toString)
+                                            .map(s -> s.split(" ")[0])
                                             .toList(),
                                     returnTypeResult,
                                     returnedPath,
