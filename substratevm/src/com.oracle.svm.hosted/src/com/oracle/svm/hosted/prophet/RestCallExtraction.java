@@ -23,9 +23,11 @@ import jdk.graal.compiler.nodes.ValueNode;
 import jdk.graal.compiler.nodes.java.LoadFieldNode;
 import jdk.graal.compiler.nodes.virtual.CommitAllocationNode;
 import jdk.vm.ci.meta.JavaConstant;
+import jdk.vm.ci.meta.ResolvedJavaMethod;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -75,7 +77,9 @@ public class RestCallExtraction {
                                 restCalls.add(new RestCall(
                                         HTTP_METHOD_TYPE,
                                         PARENT_METHOD,
-                                        SimpleEncoder.bytesToHex(method.getCode()),
+                                        Arrays.stream(method.getParameters())
+                                                .map(ResolvedJavaMethod.Parameter::toString)
+                                                .toList(),
                                         RETURN_TYPE,
                                         URI.toString(),
                                         callIsCollection,

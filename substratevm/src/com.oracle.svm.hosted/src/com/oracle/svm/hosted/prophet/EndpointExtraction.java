@@ -207,13 +207,14 @@ public class EndpointExtraction {
                             endpoints.add(new Endpoint(
                                     httpMethod,
                                     parentMethod,
-                                    parameterAnnotationsList,
+                                    Arrays.stream(method.getParameters())
+                                            .map(Parameter::toString)
+                                            .toList(),
                                     returnTypeResult,
                                     returnedPath,
                                     returnTypeCollection,
                                     clazz.getCanonicalName(),
-                                    msName,
-                                    bytecodeHash
+                                    msName
                             ));
                         }
                     }
@@ -322,7 +323,7 @@ public class EndpointExtraction {
         Parameter[] params = method.getParameters();
         Annotation[][] annotations1 = method.getParameterAnnotations();
 
-        for (int i = 0; i < params.length; i++) {
+        for (int i = 0; i < params.length; i++) { //TODO
             Annotation[] annotations2 = annotations1[i];
             // Parameter Annotations (e.g., @PathVariable) are optional, thus can be empty (null)
             String parameterAnnotation = "";

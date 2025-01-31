@@ -1,10 +1,12 @@
 package com.oracle.svm.hosted.prophet.model;
 
+import java.util.List;
+
 public class RestCall {
 
     private String httpMethod;
     private String parentMethod;
-    private String bytecodeHash;
+    private List<String> parentMethodParameters;
     private String returnType;
     private String uri;
     private boolean isCollection;
@@ -12,19 +14,19 @@ public class RestCall {
     private String msName;
     private RESTParameter param;
 
-    public RestCall(String httpMethod, String parentMethod, String bytecodeHash,
+    public RestCall(String httpMethod, String parentMethod, List<String> parentMethodParameters,
                     String returnType, String uri, Boolean isCollection,
                     String restCallInClassName, String msName, RESTParameter param) {
 
         this.httpMethod = httpMethod;
         this.parentMethod = parentMethod;
+        this.parentMethodParameters = parentMethodParameters;
         this.returnType = returnType;
         this.uri = uri;
         this.isCollection = isCollection;
         this.restCallInClassName = restCallInClassName;
         this.msName = msName;
         this.param = param;
-        this.bytecodeHash = bytecodeHash;
     }
 
     @Override
@@ -33,7 +35,7 @@ public class RestCall {
         sb.append(this.msName).append(",").append(restCallInClassName).append(",").append(parentMethod).append(",").append(uri)
                 .append(",").append(httpMethod).append(",").append(returnType).append(",").append(param.getIsPath()).append(",")
                 .append(param.getIsBody()).append(",").append(param.getParamType()).append(",").append(param.getParamCount()).append(",")
-                .append(isCollection).append(",").append(bytecodeHash);
+                .append(isCollection).append(",").append(String.join(" ", parentMethodParameters));
         return sb.toString();
     }
 
@@ -70,8 +72,8 @@ public class RestCall {
         return isCollection;
     }
 
-    public String getBytecodeHash() {
-        return bytecodeHash;
+    public List<String> getParentMethodParameters() {
+        return parentMethodParameters;
     }
 
     // Setter methods
@@ -103,7 +105,7 @@ public class RestCall {
         this.isCollection = isCollection;
     }
 
-    public void setBytecodeHash(String bytecodeHash) {
-        this.bytecodeHash = bytecodeHash;
+    public void setParentMethodParameters(List<String> parentMethodParameters) {
+        this.parentMethodParameters = parentMethodParameters;
     }
 }

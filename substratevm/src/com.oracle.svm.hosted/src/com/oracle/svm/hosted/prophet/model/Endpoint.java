@@ -12,11 +12,10 @@ public class Endpoint {
     private boolean isCollection;
     private String endpointInClassName;
     private String msName;
-    private String bytecodeHash;
 
     public Endpoint(String httpMethod, String parentMethod, List<String> args,
                     String returnType, String path, Boolean isCollection,
-                    String endpointInClassName, String msName, String bytecodeHash) {
+                    String endpointInClassName, String msName) {
 
         this.httpMethod = httpMethod;
         this.parentMethod = parentMethod;
@@ -26,16 +25,14 @@ public class Endpoint {
         this.isCollection = isCollection;
         this.endpointInClassName = endpointInClassName;
         this.msName = msName;
-        this.bytecodeHash = bytecodeHash;
-
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.msName).append(",").append(endpointInClassName).append(",").append(parentMethod).append(",")
-                .append(toStringModified(arguments)).append(",").append(path).append(",").append(httpMethod)
-                .append(",").append(returnType).append(",").append(isCollection).append(",").append(bytecodeHash);
+                .append(String.join(" ", arguments)).append(",").append(path).append(",").append(httpMethod)
+                .append(",").append(returnType).append(",").append(isCollection);
         return sb.toString();
     }
 
@@ -86,10 +83,6 @@ public class Endpoint {
         return isCollection;
     }
 
-    public String getBytecodeHash() {
-        return bytecodeHash;
-    }
-
     // Setter methods
     public void setHttpMethod(String httpMethod) {
         this.httpMethod = httpMethod;
@@ -121,9 +114,5 @@ public class Endpoint {
 
     public void setCollection(boolean isCollection) {
         this.isCollection = isCollection;
-    }
-
-    public void setBytecodeHash(String bytecodeHash) {
-        this.bytecodeHash = bytecodeHash;
     }
 }
