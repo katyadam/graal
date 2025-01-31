@@ -1,5 +1,7 @@
 package com.oracle.svm.hosted.prophet.model;
 
+import com.oracle.svm.hosted.prophet.SimpleEncoder;
+
 public class Method {
 
     private String name;
@@ -8,7 +10,7 @@ public class Method {
 
     public Method(String name, byte[] bytecode) {
         this.name = name;
-        this.bytecodeHash = bytesToHex(bytecode);
+        this.bytecodeHash = SimpleEncoder.bytesToHex(bytecode);
     }
 
     public String getName() {
@@ -24,19 +26,7 @@ public class Method {
     }
 
     public void setBytecodeHash(byte[] bytecodeHash) {
-        this.bytecodeHash = bytesToHex(bytecodeHash);
-    }
-
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder hexString = new StringBuilder();
-        for (byte b : bytes) {
-            String hex = Integer.toHexString(0xFF & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        return hexString.toString();
+        this.bytecodeHash = SimpleEncoder.bytesToHex(bytecodeHash);
     }
 
     // Using "|" as divider, because part of name are commas

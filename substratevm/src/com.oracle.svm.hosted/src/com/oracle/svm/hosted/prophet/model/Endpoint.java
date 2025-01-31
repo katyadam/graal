@@ -3,7 +3,7 @@ package com.oracle.svm.hosted.prophet.model;
 import java.util.List;
 
 public class Endpoint {
-    
+
     private String httpMethod;
     private String parentMethod;
     private List<String> arguments;
@@ -12,10 +12,11 @@ public class Endpoint {
     private boolean isCollection;
     private String endpointInClassName;
     private String msName;
+    private String bytecodeHash;
 
-    public Endpoint(String httpMethod, String parentMethod, List<String> args, 
-                    String returnType, String path, Boolean isCollection, 
-                    String endpointInClassName, String msName) {
+    public Endpoint(String httpMethod, String parentMethod, List<String> args,
+                    String returnType, String path, Boolean isCollection,
+                    String endpointInClassName, String msName, String bytecodeHash) {
 
         this.httpMethod = httpMethod;
         this.parentMethod = parentMethod;
@@ -25,39 +26,46 @@ public class Endpoint {
         this.isCollection = isCollection;
         this.endpointInClassName = endpointInClassName;
         this.msName = msName;
+        this.bytecodeHash = bytecodeHash;
 
     }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.msName).append(",").append(endpointInClassName).append(",").append(parentMethod).append(",")
-        .append(toStringModified(arguments)).append(",").append(path).append(",").append(httpMethod)
-        .append(",").append(returnType).append(",").append(isCollection);
+                .append(toStringModified(arguments)).append(",").append(path).append(",").append(httpMethod)
+                .append(",").append(returnType).append(",").append(isCollection).append(",").append(bytecodeHash);
         return sb.toString();
     }
-    private String toStringModified(List<String> args){
+
+    private String toStringModified(List<String> args) {
         StringBuilder sb = new StringBuilder();
-        
-        for (int i = 0; i < args.size(); i++){
+
+        for (int i = 0; i < args.size(); i++) {
             String str = args.get(i);
             sb.append(str.replaceAll(" ", "_"));
-            if (i < args.size() - 1){
+            if (i < args.size() - 1) {
                 sb.append("&");
             }
         }
 
         return sb.toString();
     }
+
     // Getter methods
     public String getHttpMethod() {
         return httpMethod;
     }
+
     public String getMsName() {
         return this.msName;
     }
+
     public String getEndpointInClassName() {
         return this.endpointInClassName;
     }
+
     public String getParentMethod() {
         return parentMethod;
     }
@@ -78,16 +86,23 @@ public class Endpoint {
         return isCollection;
     }
 
+    public String getBytecodeHash() {
+        return bytecodeHash;
+    }
+
     // Setter methods
     public void setHttpMethod(String httpMethod) {
         this.httpMethod = httpMethod;
     }
+
     public void setMsName(String msName) {
         this.msName = msName;
     }
+
     public void setEndpointInClassName(String className) {
         this.endpointInClassName = className;
     }
+
     public void setParentMethod(String parentMethod) {
         this.parentMethod = parentMethod;
     }
@@ -106,5 +121,9 @@ public class Endpoint {
 
     public void setCollection(boolean isCollection) {
         this.isCollection = isCollection;
+    }
+
+    public void setBytecodeHash(String bytecodeHash) {
+        this.bytecodeHash = bytecodeHash;
     }
 }

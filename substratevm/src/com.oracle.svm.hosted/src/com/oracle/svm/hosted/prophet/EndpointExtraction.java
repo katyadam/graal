@@ -48,7 +48,7 @@ public class EndpointExtraction {
                     hasFullPath = true;
                     // System.out.println(fullPath[0]);
                 }
-                logger.info("Class: " + clazz.getName() +  " -- Looking at annotation: " + annotationClass.annotationType().getSimpleName());
+                logger.info("Class: " + clazz.getName() + " -- Looking at annotation: " + annotationClass.annotationType().getSimpleName());
                 if (annotationClass.annotationType().getSimpleName().equals("Service")) {
                     logger.info("True");
                     analysisType.registerAsInstantiated("Service registered by " + EndpointExtraction.class);
@@ -64,6 +64,7 @@ public class EndpointExtraction {
 
                         ArrayList<String> parameterAnnotationsList = new ArrayList<>();
                         String httpMethod = null, parentMethod = null, returnTypeResult = null, path = "";
+                        String bytecodeHash = null;
                         boolean returnTypeCollection = false, isEndpoint = false;
                         if (controllerAnnotationNames.contains(annotation.annotationType().getSimpleName())) {
 
@@ -80,6 +81,7 @@ public class EndpointExtraction {
                             // following the rad-source format for the parentMethod JSON need to
                             // parse before the first parenthesis
                             parentMethod = method.getQualifiedName().substring(0, method.getQualifiedName().indexOf("("));
+                            bytecodeHash = SimpleEncoder.bytesToHex(method.getCode());
                             if (annotation.annotationType().getName().startsWith(PUT_MAPPING)) {
                                 httpMethod = "PUT";
                             } else if (annotation.annotationType().getName().startsWith(GET_MAPPING)) {
@@ -135,7 +137,7 @@ public class EndpointExtraction {
                             isEndpoint = true;
                             // Code to get the parentMethod attribute:
                             parentMethod = method.getQualifiedName().substring(0, method.getQualifiedName().indexOf("("));
-
+                            bytecodeHash = SimpleEncoder.bytesToHex(method.getCode());
                             /*
                              * example of this case (in cms microservice):
                              *
@@ -202,7 +204,17 @@ public class EndpointExtraction {
                             // System.out.println("Is Collection: " + returnTypeCollection);
                             // System.out.println("============");
 
-                            endpoints.add(new Endpoint(httpMethod, parentMethod, parameterAnnotationsList, returnTypeResult, returnedPath, returnTypeCollection, clazz.getCanonicalName(), msName));
+                            endpoints.add(new Endpoint(
+                                    httpMethod,
+                                    parentMethod,
+                                    parameterAnnotationsList,
+                                    returnTypeResult,
+                                    returnedPath,
+                                    returnTypeCollection,
+                                    clazz.getCanonicalName(),
+                                    msName,
+                                    bytecodeHash
+                            ));
                         }
                     }
 
