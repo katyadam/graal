@@ -211,7 +211,7 @@ public class EndpointExtraction {
                                             .map(Parameter::toString)
                                             .map(s -> s.split(" ")[0])
                                             .toList(),
-                                    returnTypeResult,
+                                    method.getSignature().getReturnType().toJavaName(),
                                     returnedPath,
                                     returnTypeCollection,
                                     clazz.getCanonicalName(),

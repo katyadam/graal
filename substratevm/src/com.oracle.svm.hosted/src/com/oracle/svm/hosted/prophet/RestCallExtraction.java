@@ -81,7 +81,7 @@ public class RestCallExtraction {
                                                 .map(ResolvedJavaMethod.Parameter::toString)
                                                 .map(s -> s.split(" ")[0])
                                                 .toList(),
-                                        RETURN_TYPE,
+                                        method.getSignature().getReturnType().toJavaName(),
                                         URI.toString(),
                                         callIsCollection,
                                         clazz.getCanonicalName(),
